@@ -1,0 +1,1521 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>synapsis.core.synapsis_utils API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>synapsis.core.synapsis_utils</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from __future__ import annotations
+import typing as t
+import itertools
+import json
+import string
+import unicodedata
+import hashlib
+import numbers
+import re
+from . import utils
+from .exceptions import SynapsisError
+from ..synapse import Synapse, SynapsePermission
+from ..synapse.synapse_permission import PermissionCode, AccessTypes
+import synapseclient
+from synapseclient.core.utils import id_of
+from synapseclient.core.exceptions import SynapseFileNotFoundError, SynapseHTTPError, SynapseAuthenticationError
+
+
+class SynapsisUtils(object):
+    def __init__(self, synapse: Synapse):
+        self.__synapse__ = synapse
+
+    def id_of(self, obj: synapseclient.Entity | str | dict | numbers.Number) -&gt; str | numbers.Number:
+        &#34;&#34;&#34;
+        Try to figure out the Synapse ID of the given object.
+
+        :param obj: String, Entity object, or dictionary.
+        :return: The ID or throws an exception.
+        &#34;&#34;&#34;
+        return id_of(obj)
+
+    def is_synapse_id(self, value: str, exists: bool = False) -&gt; bool:
+        &#34;&#34;&#34;
+        Gets if the value is a Synapse ID and optionally if the Entity exists.
+
+        :param value: String to check.
+        :param exists: Check if the Entity exists otherwise only validates the value is a Synapse ID.
+        :return: True if the value matches the Synapse ID format otherwise False.
+        &#34;&#34;&#34;
+        if isinstance(value, str):
+            value = value.strip()
+            is_id = re.match(&#39;^syn[0-9]+$&#39;, value, re.IGNORECASE) is not None
+            if is_id and exists:
+                try:
+                    bundle = self.get_bundle(value)
+                    return bundle is not None
+                except SynapseFileNotFoundError:
+                    return False
+                except (SynapseHTTPError, SynapseAuthenticationError,) as err:
+                    status = (err.__context__ and err.__context__.response.status_code) or err.response.status_code
+                    if status in (400, 404):
+                        return False
+                    # Valid ID but user lacks permission or is not logged in
+                    elif status == 403:
+                        return True
+                return False
+            else:
+                return is_id
+        return False
+
+    def find_entity(self,
+                    name: str,
+                    parent: t.Optional[synapseclient.Entity | str] = None,
+                    **get_kwargs: t.Optional[dict]
+                    ) -&gt; str | None:
+        &#34;&#34;&#34;
+        Find an Entity given its name and parent.
+
+        :param name: Name of the entity to find
+        :param parent: An Entity object or the ID of an entity as a string. Omit if searching for a Project by name.
+        :param get_kwargs: Keyword args for Synapse.get().
+        :return: The Entity or None.
+        &#34;&#34;&#34;
+        id = self.__synapse__.findEntityId(name, parent=parent)
+        if id:
+            return self.__synapse__.get(id, **get_kwargs)
+        else:
+            return None
+
+    def delete_skip_trash(self, entity: synapseclient.Entity | str) -&gt; None:
+        &#34;&#34;&#34;
+        Delete an entity and skip the trash. This permanently deletes the Entity.
+
+        :param entity:
+        :return: None
+        &#34;&#34;&#34;
+        self.__synapse__.restDELETE(uri=&#39;/entity/{0}?skipTrashCan=true&#39;.format(self.id_of(entity)))
+
+    def get_bundle(self,
+                   entity: synapseclient.Entity | str,
+                   version: t.Optional[int] = None,
+                   include_entity: t.Optional[bool] = True,
+                   include_annotations: t.Optional[bool] = False,
+                   include_permissions: t.Optional[bool] = False,
+                   include_entity_path: t.Optional[bool] = False,
+                   include_has_children: t.Optional[bool] = False,
+                   include_access_control_list: t.Optional[bool] = False,
+                   include_file_handles: t.Optional[bool] = False,
+                   include_table_bundle: t.Optional[bool] = False,
+                   include_root_wiki_id: t.Optional[bool] = False,
+                   include_benefactor_acl: t.Optional[bool] = False,
+                   include_doi_association: t.Optional[bool] = False,
+                   include_file_name: t.Optional[bool] = False,
+                   include_thread_count: t.Optional[bool] = False,
+                   include_restriction_information: t.Optional[bool] = False) -&gt; dict:
+        &#34;&#34;&#34;
+        Gets the bundle for an Entity.
+
+        :return: dict
+        &#34;&#34;&#34;
+        request = {
+            &#39;includeEntity&#39;: include_entity,
+            &#39;includeAnnotations&#39;: include_annotations,
+            &#39;includePermissions&#39;: include_permissions,
+            &#39;includeEntityPath&#39;: include_entity_path,
+            &#39;includeHasChildren&#39;: include_has_children,
+            &#39;includeAccessControlList&#39;: include_access_control_list,
+            &#39;includeFileHandles&#39;: include_file_handles,
+            &#39;includeTableBundle&#39;: include_table_bundle,
+            &#39;includeRootWikiId&#39;: include_root_wiki_id,
+            &#39;includeBenefactorACL&#39;: include_benefactor_acl,
+            &#39;includeDOIAssociation&#39;: include_doi_association,
+            &#39;includeFileName&#39;: include_file_name,
+            &#39;includeThreadCount&#39;: include_thread_count,
+            &#39;includeRestrictionInformation&#39;: include_restriction_information
+        }
+        if version is not None:
+            return self.__synapse__.restPOST(&#39;/entity/{0}/version/{1}/bundle2&#39;.format(self.id_of(entity), version),
+                                             body=json.dumps(request))
+        else:
+            return self.__synapse__.restPOST(&#39;/entity/{0}/bundle2&#39;.format(self.id_of(entity)),
+                                             body=json.dumps(request))
+
+    def copy_file_handles_batch(self,
+                                file_handle_ids: list[str],
+                                obj_types: list[str],
+                                obj_ids: list[str]) -&gt; list[dict]:
+        &#34;&#34;&#34;
+        Copies multiple filehandles.
+
+        :param file_handle_ids: The filehandle IDs to copy.
+        :param obj_types: The types of the associated object.
+        :param obj_ids: The IDS of the associated objects.
+        :return: List of dict
+        &#34;&#34;&#34;
+        copy_file_handle_request = {&#34;copyRequests&#34;: []}
+        for file_handle_id, obj_type, obj_id in itertools.zip_longest(file_handle_ids, obj_types, obj_ids):
+            file_item = {
+                &#34;originalFile&#34;: {
+                    &#34;fileHandleId&#34;: file_handle_id,
+                    &#34;associateObjectId&#34;: obj_id,
+                    &#34;associateObjectType&#34;: obj_type
+                }
+            }
+            copy_file_handle_request[&#34;copyRequests&#34;].append(file_item)
+
+        copied_file_handles = self.__synapse__.restPOST(&#39;/filehandles/copy&#39;,
+                                                        body=json.dumps(copy_file_handle_request),
+                                                        endpoint=self.__synapse__.fileHandleEndpoint)
+        return copied_file_handles.get(&#34;copyResults&#34;)
+
+    def get_project(self, entity: synapseclient.Entity | str) -&gt; synapseclient.Project:
+        &#34;&#34;&#34;
+        Gets the Project for a child entity (or returns self if entity is a Project).
+
+        :param entity: The Entity to get the Project for.
+        :return: Project
+        &#34;&#34;&#34;
+        if isinstance(entity, synapseclient.Project):
+            return entity
+        path = self.__synapse__.restGET(&#39;/entity/{0}/path&#39;.format(self.id_of(entity))).get(&#39;path&#39;)[1:][0]
+        return self.__synapse__.get(path[&#39;id&#39;])
+
+    def get_synapse_path(self, entity: synapseclient.Entity | str) -&gt; str:
+        &#34;&#34;&#34;
+        Gets the absolute path to a Synapse Entity.
+
+        :param entity: Synapse Entity or ID to get the path for.
+        :return: str
+        &#34;&#34;&#34;
+        paths = self.__synapse__.restGET(&#39;/entity/{0}/path&#39;.format(self.id_of(entity))).get(&#39;path&#39;)[1:]
+        segments = [p[&#39;name&#39;] for p in paths]
+        return &#39;/&#39;.join(segments)
+
+    def find_data_file_handle(self,
+                              source: list[dict] | synapseclient.File | dict,
+                              data_file_handle_id: t.Optional[str] = None) -&gt; dict:
+        &#34;&#34;&#34;
+        Gets the fileHandle from an entity, bundle, or list of filehandles.
+
+        :param source: List of bundle[&#34;fileHandles&#34;], File, or File bundle to get the filehandle from.
+        :param data_file_handle_id: The dataFileHandleId to find.
+        &#34;&#34;&#34;
+        file_handles = None
+        if isinstance(source, synapseclient.File):
+            return source[&#39;_file_handle&#39;]
+        elif isinstance(source, dict):
+            if &#39;entity&#39; in source and &#39;dataFileHandleId&#39; in source[&#39;entity&#39;]:
+                data_file_handle_id = source[&#39;entity&#39;][&#39;dataFileHandleId&#39;]
+            file_handles = source[&#39;fileHandles&#39;]
+        elif isinstance(source, list):
+            file_handles = source
+
+        if data_file_handle_id is None:
+            return utils.find(file_handles, lambda f: f[&#39;status&#39;] == &#39;AVAILABLE&#39; and not f[&#39;isPreview&#39;])
+        else:
+            return utils.find(file_handles, lambda f: str(f[&#39;id&#39;]) == str(data_file_handle_id))
+
+    def get_filehandle(self, file: synapseclient.File | str) -&gt; dict | None:
+        &#34;&#34;&#34;
+        Gets the filehandle for an Entity.
+
+        :param file: File Entity or ID
+        :return: dict
+        &#34;&#34;&#34;
+        res = self.__synapse__.restGET(&#39;/entity/{0}/filehandles&#39;.format(self.id_of(file)))
+        filehandle = utils.find(res[&#39;list&#39;], lambda f: f[&#39;status&#39;] == &#39;AVAILABLE&#39; and not f[&#39;isPreview&#39;])
+        return filehandle
+
+    def get_filehandles(self,
+                        files_and_file_handles: list[tuple],
+                        include_pre_signed_urls: t.Optional[bool] = False,
+                        include_preview_pre_signed_urls: t.Optional[bool] = False) -&gt; list[dict]:
+        &#34;&#34;&#34;
+        Gets multiple filehandles at once.
+
+        :param files_and_file_handles: List of tuples with (Entity File or ID, file_handle_id or dict with &#39;id&#39;)
+        :param include_pre_signed_urls: True to include pre-signed URLs.
+        :param include_preview_pre_signed_urls: True to include pre-signed URLs for preview.
+        :return: List of dict
+        &#34;&#34;&#34;
+        body = {
+            &#39;includeFileHandles&#39;: True,
+            &#39;includePreSignedURLs&#39;: include_pre_signed_urls,
+            &#39;includePreviewPreSignedURLs&#39;: include_preview_pre_signed_urls,
+            &#39;requestedFiles&#39;: []
+        }
+        for syn_file, file_handle in files_and_file_handles:
+            body[&#39;requestedFiles&#39;].append(
+                {
+                    &#39;fileHandleId&#39;: self.id_of(file_handle),
+                    &#39;associateObjectId&#39;: self.id_of(syn_file),
+                    &#39;associateObjectType&#39;: &#39;FileEntity&#39;
+                }
+            )
+
+        res = self.__synapse__.restPOST(&#39;/fileHandle/batch&#39;,
+                                        endpoint=self.__synapse__.fileHandleEndpoint,
+                                        body=json.dumps(body))
+
+        return res.get(&#39;requestedFiles&#39;, [])
+
+    def set_entity_permission(self,
+                              entity: synapseclient.Entity | str,
+                              principal: synapseclient.UserProfile | synapseclient.Team | str | numbers.Number,
+                              permission: SynapsePermission | PermissionCode | AccessTypes | None) -&gt; dict | None:
+        &#34;&#34;&#34;
+        Set the permission on an Entity.
+
+        :param entity: The Entity or ID to change the permission on.
+        :param principal: The UserProfile, Team, or ID to change permission on.
+        :param permission: SynapsePermission, SynapsePermission.code, list of permissions, or None to remove the permission.
+        :return: dict if permission updated else None.
+        &#34;&#34;&#34;
+        principal_id = self.id_of(principal)
+        permission = self.__to_permission__(permission)
+
+        # Check if the principal has been added to the entity and what permission it has.
+        current_access_types = self.__synapse__.getPermissions(entity, principalId=principal_id)
+        if not permission.equals(current_access_types):
+            return self.__synapse__.setPermissions(entity, principal_id, accessType=permission.access_types)
+        else:
+            return None
+
+    def invite_to_team(self,
+                       team: synapseclient.Team | str,
+                       invitee: synapseclient.UserProfile | str,
+                       message: t.Optional[str] = None,
+                       force: t.Optional[bool] = False,
+                       as_manager: t.Optional[bool] = False) -&gt; dict | list[dict, dict] | None:
+        &#34;&#34;&#34;
+        Invite a user or email address to a Team.
+
+        :param team: The Team or ID to invite to.
+        :param invitee: The UserProfile, UserProfile.Id, or email address to invite.
+        :param message: Optional message to include in the invitation email sent to the invitee.
+        :param force: Force a new invitation to be sent if one already exists.
+        :param as_manager: True to invite the user as a Manager of the Team. Only applicable for Users, not emails.
+        :return: dict of invite response and/or invite response/team manager response.
+        &#34;&#34;&#34;
+        is_email = True if (isinstance(invitee, str) and &#39;@&#39; in invitee) else False
+        if is_email and as_manager:
+            raise SynapsisError(&#39;Cannot invite emails as managers.&#39;)
+
+        invite_args = {
+            &#39;message&#39;: message,
+            &#39;force&#39;: force
+        }
+
+        if is_email:
+            invite_args[&#39;inviteeEmail&#39;] = invitee
+        else:
+            invite_args[&#39;user&#39;] = invitee
+
+        invite = self.__synapse__.invite_to_team(team, **invite_args)
+
+        if as_manager:
+            manager_res = self.set_team_permission(team, invitee, SynapsePermission.TEAM_MANAGER)
+            return [invite, manager_res]
+        else:
+            return invite
+
+    def set_team_permission(self,
+                            team: synapseclient.Team | str,
+                            user: synapseclient.UserProfile | str,
+                            permission: SynapsePermission | PermissionCode | AccessTypes | None) -&gt; dict | None:
+        &#34;&#34;&#34;
+        Set the permission for a User on a Team.
+
+        :param team: The Team or ID to set the permission on.
+        :param user: The UserProfile or ID to give permission to.
+        :param permission: The permission to add or remove.
+        :return: dict
+        &#34;&#34;&#34;
+        team_id = self.id_of(team)
+        user_id = self.id_of(user)
+        permission = self.__to_permission__(permission)
+
+        team_acl = self.__synapse__.restGET(&#39;/team/{0}/acl&#39;.format(team_id))
+        user_access = utils.find(team_acl[&#39;resourceAccess&#39;], lambda a: str(a.get(&#39;principalId&#39;)) == str(user_id))
+        current_access_types = user_access[&#39;accessType&#39;] if user_access else None
+
+        if permission.equals(current_access_types):
+            return None
+        else:
+            if SynapsePermission.NO_PERMISSION.equals(permission):
+                if user_access:
+                    team_acl[&#39;resourceAccess&#39;].remove(user_access)
+            else:
+                new_acl = {&#39;principalId&#39;: user_id, &#39;accessType&#39;: permission.access_types}
+                team_acl[&#39;resourceAccess&#39;].append(new_acl)
+            return self.__synapse__.restPUT(&#34;/team/acl&#34;, body=json.dumps(team_acl))
+
+    def md5sum(self,
+               filename: str,
+               chunk_blocks: t.Optional[int] = 12800,
+               as_bytes: t.Optional[bool] = False) -&gt; str | bytes:
+        &#34;&#34;&#34;
+        Gets the MD5 value for a file.
+
+        :param filename: Path to the file.
+        :param chunk_blocks: Read chunk block size. Will be multiplied by md5.block_size.
+        :param as_bytes: True to return the MD5 as bytes, otherwise string.
+        :return: str or bytes.
+        &#34;&#34;&#34;
+        md5 = hashlib.md5()
+        with open(filename, &#39;rb&#39;) as f:
+            while chunk := f.read(chunk_blocks * md5.block_size):
+                md5.update(chunk)
+        if as_bytes:
+            return md5.digest()
+        else:
+            return md5.hexdigest()
+
+    __ENTITY_NAME_MAX_LEN__: t.Final[int] = 256
+    __ENTITY_NAME_ALLOWED_CHARS__: t.Final[frozenset] = frozenset(
+        list(&#34;&#39;()+,-._ %s%s&#34; % (string.ascii_letters, string.digits))
+    )
+
+    def sanitize_entity_name(self,
+                             name: str,
+                             replace_char: t.Optional[str] = &#39;_&#39;,
+                             return_replaced: t.Optional[bool] = False) -&gt; str | list[str, list]:
+        &#34;&#34;&#34;
+        Sanitizes the name for an Entity or File.
+
+            The name of an entity.
+                - Must be 256 characters or less.
+                - May only contain: letters, numbers, spaces, underscores, hyphens, periods, plus signs, apostrophes, and parentheses
+                - Not documented but can also accept commas.
+        :param name: The name to sanitize.
+        :param replace_char: The character you use as a replacement.
+        :param return_replaced: True to return a list of the replaced characters with the sanitized name.
+        :return: The sanitized string or the sanitized string and a list of replaced characters.
+        &#34;&#34;&#34;
+        cleaned = unicodedata.normalize(&#39;NFKD&#39;, name).encode(&#39;ASCII&#39;, &#39;ignore&#39;)
+        new_name = []
+        replaced = []
+        for char in [chr(c) for c in cleaned]:
+            if char in self.__ENTITY_NAME_ALLOWED_CHARS__:
+                new_name.append(char)
+            else:
+                new_name.append(replace_char)
+                if char not in replaced:
+                    replaced.append(char)
+        new_name = &#39;&#39;.join(new_name)
+
+        if len(new_name) &gt; self.__ENTITY_NAME_MAX_LEN__:
+            raise SynapsisError(
+                &#39;Entity name exceeds limit of: {0}, Name: {1}&#39;.format(self.__ENTITY_NAME_MAX_LEN__, new_name))
+
+        if return_replaced:
+            return new_name, replaced
+        else:
+            return new_name
+
+    def __to_permission__(self, value: SynapsePermission | PermissionCode | AccessTypes | None) -&gt; SynapsePermission:
+        &#34;&#34;&#34;
+        Gets a SynapsePermission from an arg or raises NotFoundError.
+
+        :param value: SynapsePermission, SynapsePermission.code, SynapsePermission.access_types, or None.
+        :return: SynapsePermission
+        :raise NotFoundError if the SynapsePermission is not found.
+        &#34;&#34;&#34;
+        if isinstance(value, SynapsePermission):
+            return value
+        elif isinstance(value, str):
+            return SynapsePermission.find_by(code=value, raises=True)
+        elif isinstance(value, list):
+            return SynapsePermission.find_by(access_types=value, raises=True)
+        elif value is None:
+            return SynapsePermission.NO_PERMISSION</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="synapsis.core.synapsis_utils.SynapsisUtils"><code class="flex name class">
+<span>class <span class="ident">SynapsisUtils</span></span>
+<span>(</span><span>synapse: Synapse)</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SynapsisUtils(object):
+    def __init__(self, synapse: Synapse):
+        self.__synapse__ = synapse
+
+    def id_of(self, obj: synapseclient.Entity | str | dict | numbers.Number) -&gt; str | numbers.Number:
+        &#34;&#34;&#34;
+        Try to figure out the Synapse ID of the given object.
+
+        :param obj: String, Entity object, or dictionary.
+        :return: The ID or throws an exception.
+        &#34;&#34;&#34;
+        return id_of(obj)
+
+    def is_synapse_id(self, value: str, exists: bool = False) -&gt; bool:
+        &#34;&#34;&#34;
+        Gets if the value is a Synapse ID and optionally if the Entity exists.
+
+        :param value: String to check.
+        :param exists: Check if the Entity exists otherwise only validates the value is a Synapse ID.
+        :return: True if the value matches the Synapse ID format otherwise False.
+        &#34;&#34;&#34;
+        if isinstance(value, str):
+            value = value.strip()
+            is_id = re.match(&#39;^syn[0-9]+$&#39;, value, re.IGNORECASE) is not None
+            if is_id and exists:
+                try:
+                    bundle = self.get_bundle(value)
+                    return bundle is not None
+                except SynapseFileNotFoundError:
+                    return False
+                except (SynapseHTTPError, SynapseAuthenticationError,) as err:
+                    status = (err.__context__ and err.__context__.response.status_code) or err.response.status_code
+                    if status in (400, 404):
+                        return False
+                    # Valid ID but user lacks permission or is not logged in
+                    elif status == 403:
+                        return True
+                return False
+            else:
+                return is_id
+        return False
+
+    def find_entity(self,
+                    name: str,
+                    parent: t.Optional[synapseclient.Entity | str] = None,
+                    **get_kwargs: t.Optional[dict]
+                    ) -&gt; str | None:
+        &#34;&#34;&#34;
+        Find an Entity given its name and parent.
+
+        :param name: Name of the entity to find
+        :param parent: An Entity object or the ID of an entity as a string. Omit if searching for a Project by name.
+        :param get_kwargs: Keyword args for Synapse.get().
+        :return: The Entity or None.
+        &#34;&#34;&#34;
+        id = self.__synapse__.findEntityId(name, parent=parent)
+        if id:
+            return self.__synapse__.get(id, **get_kwargs)
+        else:
+            return None
+
+    def delete_skip_trash(self, entity: synapseclient.Entity | str) -&gt; None:
+        &#34;&#34;&#34;
+        Delete an entity and skip the trash. This permanently deletes the Entity.
+
+        :param entity:
+        :return: None
+        &#34;&#34;&#34;
+        self.__synapse__.restDELETE(uri=&#39;/entity/{0}?skipTrashCan=true&#39;.format(self.id_of(entity)))
+
+    def get_bundle(self,
+                   entity: synapseclient.Entity | str,
+                   version: t.Optional[int] = None,
+                   include_entity: t.Optional[bool] = True,
+                   include_annotations: t.Optional[bool] = False,
+                   include_permissions: t.Optional[bool] = False,
+                   include_entity_path: t.Optional[bool] = False,
+                   include_has_children: t.Optional[bool] = False,
+                   include_access_control_list: t.Optional[bool] = False,
+                   include_file_handles: t.Optional[bool] = False,
+                   include_table_bundle: t.Optional[bool] = False,
+                   include_root_wiki_id: t.Optional[bool] = False,
+                   include_benefactor_acl: t.Optional[bool] = False,
+                   include_doi_association: t.Optional[bool] = False,
+                   include_file_name: t.Optional[bool] = False,
+                   include_thread_count: t.Optional[bool] = False,
+                   include_restriction_information: t.Optional[bool] = False) -&gt; dict:
+        &#34;&#34;&#34;
+        Gets the bundle for an Entity.
+
+        :return: dict
+        &#34;&#34;&#34;
+        request = {
+            &#39;includeEntity&#39;: include_entity,
+            &#39;includeAnnotations&#39;: include_annotations,
+            &#39;includePermissions&#39;: include_permissions,
+            &#39;includeEntityPath&#39;: include_entity_path,
+            &#39;includeHasChildren&#39;: include_has_children,
+            &#39;includeAccessControlList&#39;: include_access_control_list,
+            &#39;includeFileHandles&#39;: include_file_handles,
+            &#39;includeTableBundle&#39;: include_table_bundle,
+            &#39;includeRootWikiId&#39;: include_root_wiki_id,
+            &#39;includeBenefactorACL&#39;: include_benefactor_acl,
+            &#39;includeDOIAssociation&#39;: include_doi_association,
+            &#39;includeFileName&#39;: include_file_name,
+            &#39;includeThreadCount&#39;: include_thread_count,
+            &#39;includeRestrictionInformation&#39;: include_restriction_information
+        }
+        if version is not None:
+            return self.__synapse__.restPOST(&#39;/entity/{0}/version/{1}/bundle2&#39;.format(self.id_of(entity), version),
+                                             body=json.dumps(request))
+        else:
+            return self.__synapse__.restPOST(&#39;/entity/{0}/bundle2&#39;.format(self.id_of(entity)),
+                                             body=json.dumps(request))
+
+    def copy_file_handles_batch(self,
+                                file_handle_ids: list[str],
+                                obj_types: list[str],
+                                obj_ids: list[str]) -&gt; list[dict]:
+        &#34;&#34;&#34;
+        Copies multiple filehandles.
+
+        :param file_handle_ids: The filehandle IDs to copy.
+        :param obj_types: The types of the associated object.
+        :param obj_ids: The IDS of the associated objects.
+        :return: List of dict
+        &#34;&#34;&#34;
+        copy_file_handle_request = {&#34;copyRequests&#34;: []}
+        for file_handle_id, obj_type, obj_id in itertools.zip_longest(file_handle_ids, obj_types, obj_ids):
+            file_item = {
+                &#34;originalFile&#34;: {
+                    &#34;fileHandleId&#34;: file_handle_id,
+                    &#34;associateObjectId&#34;: obj_id,
+                    &#34;associateObjectType&#34;: obj_type
+                }
+            }
+            copy_file_handle_request[&#34;copyRequests&#34;].append(file_item)
+
+        copied_file_handles = self.__synapse__.restPOST(&#39;/filehandles/copy&#39;,
+                                                        body=json.dumps(copy_file_handle_request),
+                                                        endpoint=self.__synapse__.fileHandleEndpoint)
+        return copied_file_handles.get(&#34;copyResults&#34;)
+
+    def get_project(self, entity: synapseclient.Entity | str) -&gt; synapseclient.Project:
+        &#34;&#34;&#34;
+        Gets the Project for a child entity (or returns self if entity is a Project).
+
+        :param entity: The Entity to get the Project for.
+        :return: Project
+        &#34;&#34;&#34;
+        if isinstance(entity, synapseclient.Project):
+            return entity
+        path = self.__synapse__.restGET(&#39;/entity/{0}/path&#39;.format(self.id_of(entity))).get(&#39;path&#39;)[1:][0]
+        return self.__synapse__.get(path[&#39;id&#39;])
+
+    def get_synapse_path(self, entity: synapseclient.Entity | str) -&gt; str:
+        &#34;&#34;&#34;
+        Gets the absolute path to a Synapse Entity.
+
+        :param entity: Synapse Entity or ID to get the path for.
+        :return: str
+        &#34;&#34;&#34;
+        paths = self.__synapse__.restGET(&#39;/entity/{0}/path&#39;.format(self.id_of(entity))).get(&#39;path&#39;)[1:]
+        segments = [p[&#39;name&#39;] for p in paths]
+        return &#39;/&#39;.join(segments)
+
+    def find_data_file_handle(self,
+                              source: list[dict] | synapseclient.File | dict,
+                              data_file_handle_id: t.Optional[str] = None) -&gt; dict:
+        &#34;&#34;&#34;
+        Gets the fileHandle from an entity, bundle, or list of filehandles.
+
+        :param source: List of bundle[&#34;fileHandles&#34;], File, or File bundle to get the filehandle from.
+        :param data_file_handle_id: The dataFileHandleId to find.
+        &#34;&#34;&#34;
+        file_handles = None
+        if isinstance(source, synapseclient.File):
+            return source[&#39;_file_handle&#39;]
+        elif isinstance(source, dict):
+            if &#39;entity&#39; in source and &#39;dataFileHandleId&#39; in source[&#39;entity&#39;]:
+                data_file_handle_id = source[&#39;entity&#39;][&#39;dataFileHandleId&#39;]
+            file_handles = source[&#39;fileHandles&#39;]
+        elif isinstance(source, list):
+            file_handles = source
+
+        if data_file_handle_id is None:
+            return utils.find(file_handles, lambda f: f[&#39;status&#39;] == &#39;AVAILABLE&#39; and not f[&#39;isPreview&#39;])
+        else:
+            return utils.find(file_handles, lambda f: str(f[&#39;id&#39;]) == str(data_file_handle_id))
+
+    def get_filehandle(self, file: synapseclient.File | str) -&gt; dict | None:
+        &#34;&#34;&#34;
+        Gets the filehandle for an Entity.
+
+        :param file: File Entity or ID
+        :return: dict
+        &#34;&#34;&#34;
+        res = self.__synapse__.restGET(&#39;/entity/{0}/filehandles&#39;.format(self.id_of(file)))
+        filehandle = utils.find(res[&#39;list&#39;], lambda f: f[&#39;status&#39;] == &#39;AVAILABLE&#39; and not f[&#39;isPreview&#39;])
+        return filehandle
+
+    def get_filehandles(self,
+                        files_and_file_handles: list[tuple],
+                        include_pre_signed_urls: t.Optional[bool] = False,
+                        include_preview_pre_signed_urls: t.Optional[bool] = False) -&gt; list[dict]:
+        &#34;&#34;&#34;
+        Gets multiple filehandles at once.
+
+        :param files_and_file_handles: List of tuples with (Entity File or ID, file_handle_id or dict with &#39;id&#39;)
+        :param include_pre_signed_urls: True to include pre-signed URLs.
+        :param include_preview_pre_signed_urls: True to include pre-signed URLs for preview.
+        :return: List of dict
+        &#34;&#34;&#34;
+        body = {
+            &#39;includeFileHandles&#39;: True,
+            &#39;includePreSignedURLs&#39;: include_pre_signed_urls,
+            &#39;includePreviewPreSignedURLs&#39;: include_preview_pre_signed_urls,
+            &#39;requestedFiles&#39;: []
+        }
+        for syn_file, file_handle in files_and_file_handles:
+            body[&#39;requestedFiles&#39;].append(
+                {
+                    &#39;fileHandleId&#39;: self.id_of(file_handle),
+                    &#39;associateObjectId&#39;: self.id_of(syn_file),
+                    &#39;associateObjectType&#39;: &#39;FileEntity&#39;
+                }
+            )
+
+        res = self.__synapse__.restPOST(&#39;/fileHandle/batch&#39;,
+                                        endpoint=self.__synapse__.fileHandleEndpoint,
+                                        body=json.dumps(body))
+
+        return res.get(&#39;requestedFiles&#39;, [])
+
+    def set_entity_permission(self,
+                              entity: synapseclient.Entity | str,
+                              principal: synapseclient.UserProfile | synapseclient.Team | str | numbers.Number,
+                              permission: SynapsePermission | PermissionCode | AccessTypes | None) -&gt; dict | None:
+        &#34;&#34;&#34;
+        Set the permission on an Entity.
+
+        :param entity: The Entity or ID to change the permission on.
+        :param principal: The UserProfile, Team, or ID to change permission on.
+        :param permission: SynapsePermission, SynapsePermission.code, list of permissions, or None to remove the permission.
+        :return: dict if permission updated else None.
+        &#34;&#34;&#34;
+        principal_id = self.id_of(principal)
+        permission = self.__to_permission__(permission)
+
+        # Check if the principal has been added to the entity and what permission it has.
+        current_access_types = self.__synapse__.getPermissions(entity, principalId=principal_id)
+        if not permission.equals(current_access_types):
+            return self.__synapse__.setPermissions(entity, principal_id, accessType=permission.access_types)
+        else:
+            return None
+
+    def invite_to_team(self,
+                       team: synapseclient.Team | str,
+                       invitee: synapseclient.UserProfile | str,
+                       message: t.Optional[str] = None,
+                       force: t.Optional[bool] = False,
+                       as_manager: t.Optional[bool] = False) -&gt; dict | list[dict, dict] | None:
+        &#34;&#34;&#34;
+        Invite a user or email address to a Team.
+
+        :param team: The Team or ID to invite to.
+        :param invitee: The UserProfile, UserProfile.Id, or email address to invite.
+        :param message: Optional message to include in the invitation email sent to the invitee.
+        :param force: Force a new invitation to be sent if one already exists.
+        :param as_manager: True to invite the user as a Manager of the Team. Only applicable for Users, not emails.
+        :return: dict of invite response and/or invite response/team manager response.
+        &#34;&#34;&#34;
+        is_email = True if (isinstance(invitee, str) and &#39;@&#39; in invitee) else False
+        if is_email and as_manager:
+            raise SynapsisError(&#39;Cannot invite emails as managers.&#39;)
+
+        invite_args = {
+            &#39;message&#39;: message,
+            &#39;force&#39;: force
+        }
+
+        if is_email:
+            invite_args[&#39;inviteeEmail&#39;] = invitee
+        else:
+            invite_args[&#39;user&#39;] = invitee
+
+        invite = self.__synapse__.invite_to_team(team, **invite_args)
+
+        if as_manager:
+            manager_res = self.set_team_permission(team, invitee, SynapsePermission.TEAM_MANAGER)
+            return [invite, manager_res]
+        else:
+            return invite
+
+    def set_team_permission(self,
+                            team: synapseclient.Team | str,
+                            user: synapseclient.UserProfile | str,
+                            permission: SynapsePermission | PermissionCode | AccessTypes | None) -&gt; dict | None:
+        &#34;&#34;&#34;
+        Set the permission for a User on a Team.
+
+        :param team: The Team or ID to set the permission on.
+        :param user: The UserProfile or ID to give permission to.
+        :param permission: The permission to add or remove.
+        :return: dict
+        &#34;&#34;&#34;
+        team_id = self.id_of(team)
+        user_id = self.id_of(user)
+        permission = self.__to_permission__(permission)
+
+        team_acl = self.__synapse__.restGET(&#39;/team/{0}/acl&#39;.format(team_id))
+        user_access = utils.find(team_acl[&#39;resourceAccess&#39;], lambda a: str(a.get(&#39;principalId&#39;)) == str(user_id))
+        current_access_types = user_access[&#39;accessType&#39;] if user_access else None
+
+        if permission.equals(current_access_types):
+            return None
+        else:
+            if SynapsePermission.NO_PERMISSION.equals(permission):
+                if user_access:
+                    team_acl[&#39;resourceAccess&#39;].remove(user_access)
+            else:
+                new_acl = {&#39;principalId&#39;: user_id, &#39;accessType&#39;: permission.access_types}
+                team_acl[&#39;resourceAccess&#39;].append(new_acl)
+            return self.__synapse__.restPUT(&#34;/team/acl&#34;, body=json.dumps(team_acl))
+
+    def md5sum(self,
+               filename: str,
+               chunk_blocks: t.Optional[int] = 12800,
+               as_bytes: t.Optional[bool] = False) -&gt; str | bytes:
+        &#34;&#34;&#34;
+        Gets the MD5 value for a file.
+
+        :param filename: Path to the file.
+        :param chunk_blocks: Read chunk block size. Will be multiplied by md5.block_size.
+        :param as_bytes: True to return the MD5 as bytes, otherwise string.
+        :return: str or bytes.
+        &#34;&#34;&#34;
+        md5 = hashlib.md5()
+        with open(filename, &#39;rb&#39;) as f:
+            while chunk := f.read(chunk_blocks * md5.block_size):
+                md5.update(chunk)
+        if as_bytes:
+            return md5.digest()
+        else:
+            return md5.hexdigest()
+
+    __ENTITY_NAME_MAX_LEN__: t.Final[int] = 256
+    __ENTITY_NAME_ALLOWED_CHARS__: t.Final[frozenset] = frozenset(
+        list(&#34;&#39;()+,-._ %s%s&#34; % (string.ascii_letters, string.digits))
+    )
+
+    def sanitize_entity_name(self,
+                             name: str,
+                             replace_char: t.Optional[str] = &#39;_&#39;,
+                             return_replaced: t.Optional[bool] = False) -&gt; str | list[str, list]:
+        &#34;&#34;&#34;
+        Sanitizes the name for an Entity or File.
+
+            The name of an entity.
+                - Must be 256 characters or less.
+                - May only contain: letters, numbers, spaces, underscores, hyphens, periods, plus signs, apostrophes, and parentheses
+                - Not documented but can also accept commas.
+        :param name: The name to sanitize.
+        :param replace_char: The character you use as a replacement.
+        :param return_replaced: True to return a list of the replaced characters with the sanitized name.
+        :return: The sanitized string or the sanitized string and a list of replaced characters.
+        &#34;&#34;&#34;
+        cleaned = unicodedata.normalize(&#39;NFKD&#39;, name).encode(&#39;ASCII&#39;, &#39;ignore&#39;)
+        new_name = []
+        replaced = []
+        for char in [chr(c) for c in cleaned]:
+            if char in self.__ENTITY_NAME_ALLOWED_CHARS__:
+                new_name.append(char)
+            else:
+                new_name.append(replace_char)
+                if char not in replaced:
+                    replaced.append(char)
+        new_name = &#39;&#39;.join(new_name)
+
+        if len(new_name) &gt; self.__ENTITY_NAME_MAX_LEN__:
+            raise SynapsisError(
+                &#39;Entity name exceeds limit of: {0}, Name: {1}&#39;.format(self.__ENTITY_NAME_MAX_LEN__, new_name))
+
+        if return_replaced:
+            return new_name, replaced
+        else:
+            return new_name
+
+    def __to_permission__(self, value: SynapsePermission | PermissionCode | AccessTypes | None) -&gt; SynapsePermission:
+        &#34;&#34;&#34;
+        Gets a SynapsePermission from an arg or raises NotFoundError.
+
+        :param value: SynapsePermission, SynapsePermission.code, SynapsePermission.access_types, or None.
+        :return: SynapsePermission
+        :raise NotFoundError if the SynapsePermission is not found.
+        &#34;&#34;&#34;
+        if isinstance(value, SynapsePermission):
+            return value
+        elif isinstance(value, str):
+            return SynapsePermission.find_by(code=value, raises=True)
+        elif isinstance(value, list):
+            return SynapsePermission.find_by(access_types=value, raises=True)
+        elif value is None:
+            return SynapsePermission.NO_PERMISSION</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="synapsis.core.synapsis_utils.SynapsisUtils.copy_file_handles_batch"><code class="name flex">
+<span>def <span class="ident">copy_file_handles_batch</span></span>(<span>self, file_handle_ids: list[str], obj_types: list[str], obj_ids: list[str]) ‑> list[dict]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Copies multiple filehandles.</p>
+<p>:param file_handle_ids: The filehandle IDs to copy.
+:param obj_types: The types of the associated object.
+:param obj_ids: The IDS of the associated objects.
+:return: List of dict</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def copy_file_handles_batch(self,
+                            file_handle_ids: list[str],
+                            obj_types: list[str],
+                            obj_ids: list[str]) -&gt; list[dict]:
+    &#34;&#34;&#34;
+    Copies multiple filehandles.
+
+    :param file_handle_ids: The filehandle IDs to copy.
+    :param obj_types: The types of the associated object.
+    :param obj_ids: The IDS of the associated objects.
+    :return: List of dict
+    &#34;&#34;&#34;
+    copy_file_handle_request = {&#34;copyRequests&#34;: []}
+    for file_handle_id, obj_type, obj_id in itertools.zip_longest(file_handle_ids, obj_types, obj_ids):
+        file_item = {
+            &#34;originalFile&#34;: {
+                &#34;fileHandleId&#34;: file_handle_id,
+                &#34;associateObjectId&#34;: obj_id,
+                &#34;associateObjectType&#34;: obj_type
+            }
+        }
+        copy_file_handle_request[&#34;copyRequests&#34;].append(file_item)
+
+    copied_file_handles = self.__synapse__.restPOST(&#39;/filehandles/copy&#39;,
+                                                    body=json.dumps(copy_file_handle_request),
+                                                    endpoint=self.__synapse__.fileHandleEndpoint)
+    return copied_file_handles.get(&#34;copyResults&#34;)</code></pre>
+</details>
+</dd>
+<dt id="synapsis.core.synapsis_utils.SynapsisUtils.delete_skip_trash"><code class="name flex">
+<span>def <span class="ident">delete_skip_trash</span></span>(<span>self, entity: synapseclient.Entity | str) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Delete an entity and skip the trash. This permanently deletes the Entity.</p>
+<p>:param entity:
+:return: None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def delete_skip_trash(self, entity: synapseclient.Entity | str) -&gt; None:
+    &#34;&#34;&#34;
+    Delete an entity and skip the trash. This permanently deletes the Entity.
+
+    :param entity:
+    :return: None
+    &#34;&#34;&#34;
+    self.__synapse__.restDELETE(uri=&#39;/entity/{0}?skipTrashCan=true&#39;.format(self.id_of(entity)))</code></pre>
+</details>
+</dd>
+<dt id="synapsis.core.synapsis_utils.SynapsisUtils.find_data_file_handle"><code class="name flex">
+<span>def <span class="ident">find_data_file_handle</span></span>(<span>self, source: list[dict] | synapseclient.File | dict, data_file_handle_id: t.Optional[str] = None) ‑> dict</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the fileHandle from an entity, bundle, or list of filehandles.</p>
+<p>:param source: List of bundle["fileHandles"], File, or File bundle to get the filehandle from.
+:param data_file_handle_id: The dataFileHandleId to find.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_data_file_handle(self,
+                          source: list[dict] | synapseclient.File | dict,
+                          data_file_handle_id: t.Optional[str] = None) -&gt; dict:
+    &#34;&#34;&#34;
+    Gets the fileHandle from an entity, bundle, or list of filehandles.
+
+    :param source: List of bundle[&#34;fileHandles&#34;], File, or File bundle to get the filehandle from.
+    :param data_file_handle_id: The dataFileHandleId to find.
+    &#34;&#34;&#34;
+    file_handles = None
+    if isinstance(source, synapseclient.File):
+        return source[&#39;_file_handle&#39;]
+    elif isinstance(source, dict):
+        if &#39;entity&#39; in source and &#39;dataFileHandleId&#39; in source[&#39;entity&#39;]:
+            data_file_handle_id = source[&#39;entity&#39;][&#39;dataFileHandleId&#39;]
+        file_handles = source[&#39;fileHandles&#39;]
+    elif isinstance(source, list):
+        file_handles = source
+
+    if data_file_handle_id is None:
+        return utils.find(file_handles, lambda f: f[&#39;status&#39;] == &#39;AVAILABLE&#39; and not f[&#39;isPreview&#39;])
+    else:
+        return utils.find(file_handles, lambda f: str(f[&#39;id&#39;]) == str(data_file_handle_id))</code></pre>
+</details>
+</dd>
+<dt id="synapsis.core.synapsis_utils.SynapsisUtils.find_entity"><code class="name flex">
+<span>def <span class="ident">find_entity</span></span>(<span>self, name: str, parent: t.Optional[synapseclient.Entity | str] = None, **get_kwargs: t.Optional[dict]) ‑> str | None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Find an Entity given its name and parent.</p>
+<p>:param name: Name of the entity to find
+:param parent: An Entity object or the ID of an entity as a string. Omit if searching for a Project by name.
+:param get_kwargs: Keyword args for Synapse.get().
+:return: The Entity or None.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def find_entity(self,
+                name: str,
+                parent: t.Optional[synapseclient.Entity | str] = None,
+                **get_kwargs: t.Optional[dict]
+                ) -&gt; str | None:
+    &#34;&#34;&#34;
+    Find an Entity given its name and parent.
+
+    :param name: Name of the entity to find
+    :param parent: An Entity object or the ID of an entity as a string. Omit if searching for a Project by name.
+    :param get_kwargs: Keyword args for Synapse.get().
+    :return: The Entity or None.
+    &#34;&#34;&#34;
+    id = self.__synapse__.findEntityId(name, parent=parent)
+    if id:
+        return self.__synapse__.get(id, **get_kwargs)
+    else:
+        return None</code></pre>
+</details>
+</dd>
+<dt id="synapsis.core.synapsis_utils.SynapsisUtils.get_bundle"><code class="name flex">
+<span>def <span class="ident">get_bundle</span></span>(<span>self, entity: synapseclient.Entity | str, version: t.Optional[int] = None, include_entity: t.Optional[bool] = True, include_annotations: t.Optional[bool] = False, include_permissions: t.Optional[bool] = False, include_entity_path: t.Optional[bool] = False, include_has_children: t.Optional[bool] = False, include_access_control_list: t.Optional[bool] = False, include_file_handles: t.Optional[bool] = False, include_table_bundle: t.Optional[bool] = False, include_root_wiki_id: t.Optional[bool] = False, include_benefactor_acl: t.Optional[bool] = False, include_doi_association: t.Optional[bool] = False, include_file_name: t.Optional[bool] = False, include_thread_count: t.Optional[bool] = False, include_restriction_information: t.Optional[bool] = False) ‑> dict</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the bundle for an Entity.</p>
+<p>:return: dict</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_bundle(self,
+               entity: synapseclient.Entity | str,
+               version: t.Optional[int] = None,
+               include_entity: t.Optional[bool] = True,
+               include_annotations: t.Optional[bool] = False,
+               include_permissions: t.Optional[bool] = False,
+               include_entity_path: t.Optional[bool] = False,
+               include_has_children: t.Optional[bool] = False,
+               include_access_control_list: t.Optional[bool] = False,
+               include_file_handles: t.Optional[bool] = False,
+               include_table_bundle: t.Optional[bool] = False,
+               include_root_wiki_id: t.Optional[bool] = False,
+               include_benefactor_acl: t.Optional[bool] = False,
+               include_doi_association: t.Optional[bool] = False,
+               include_file_name: t.Optional[bool] = False,
+               include_thread_count: t.Optional[bool] = False,
+               include_restriction_information: t.Optional[bool] = False) -&gt; dict:
+    &#34;&#34;&#34;
+    Gets the bundle for an Entity.
+
+    :return: dict
+    &#34;&#34;&#34;
+    request = {
+        &#39;includeEntity&#39;: include_entity,
+        &#39;includeAnnotations&#39;: include_annotations,
+        &#39;includePermissions&#39;: include_permissions,
+        &#39;includeEntityPath&#39;: include_entity_path,
+        &#39;includeHasChildren&#39;: include_has_children,
+        &#39;includeAccessControlList&#39;: include_access_control_list,
+        &#39;includeFileHandles&#39;: include_file_handles,
+        &#39;includeTableBundle&#39;: include_table_bundle,
+        &#39;includeRootWikiId&#39;: include_root_wiki_id,
+        &#39;includeBenefactorACL&#39;: include_benefactor_acl,
+        &#39;includeDOIAssociation&#39;: include_doi_association,
+        &#39;includeFileName&#39;: include_file_name,
+        &#39;includeThreadCount&#39;: include_thread_count,
+        &#39;includeRestrictionInformation&#39;: include_restriction_information
+    }
+    if version is not None:
+        return self.__synapse__.restPOST(&#39;/entity/{0}/version/{1}/bundle2&#39;.format(self.id_of(entity), version),
+                                         body=json.dumps(request))
+    else:
+        return self.__synapse__.restPOST(&#39;/entity/{0}/bundle2&#39;.format(self.id_of(entity)),
+                                         body=json.dumps(request))</code></pre>
+</details>
+</dd>
+<dt id="synapsis.core.synapsis_utils.SynapsisUtils.get_filehandle"><code class="name flex">
+<span>def <span class="ident">get_filehandle</span></span>(<span>self, file: synapseclient.File | str) ‑> Optional[dict]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the filehandle for an Entity.</p>
+<p>:param file: File Entity or ID
+:return: dict</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_filehandle(self, file: synapseclient.File | str) -&gt; dict | None:
+    &#34;&#34;&#34;
+    Gets the filehandle for an Entity.
+
+    :param file: File Entity or ID
+    :return: dict
+    &#34;&#34;&#34;
+    res = self.__synapse__.restGET(&#39;/entity/{0}/filehandles&#39;.format(self.id_of(file)))
+    filehandle = utils.find(res[&#39;list&#39;], lambda f: f[&#39;status&#39;] == &#39;AVAILABLE&#39; and not f[&#39;isPreview&#39;])
+    return filehandle</code></pre>
+</details>
+</dd>
+<dt id="synapsis.core.synapsis_utils.SynapsisUtils.get_filehandles"><code class="name flex">
+<span>def <span class="ident">get_filehandles</span></span>(<span>self, files_and_file_handles: list[tuple], include_pre_signed_urls: t.Optional[bool] = False, include_preview_pre_signed_urls: t.Optional[bool] = False) ‑> list[dict]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets multiple filehandles at once.</p>
+<p>:param files_and_file_handles: List of tuples with (Entity File or ID, file_handle_id or dict with 'id')
+:param include_pre_signed_urls: True to include pre-signed URLs.
+:param include_preview_pre_signed_urls: True to include pre-signed URLs for preview.
+:return: List of dict</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_filehandles(self,
+                    files_and_file_handles: list[tuple],
+                    include_pre_signed_urls: t.Optional[bool] = False,
+                    include_preview_pre_signed_urls: t.Optional[bool] = False) -&gt; list[dict]:
+    &#34;&#34;&#34;
+    Gets multiple filehandles at once.
+
+    :param files_and_file_handles: List of tuples with (Entity File or ID, file_handle_id or dict with &#39;id&#39;)
+    :param include_pre_signed_urls: True to include pre-signed URLs.
+    :param include_preview_pre_signed_urls: True to include pre-signed URLs for preview.
+    :return: List of dict
+    &#34;&#34;&#34;
+    body = {
+        &#39;includeFileHandles&#39;: True,
+        &#39;includePreSignedURLs&#39;: include_pre_signed_urls,
+        &#39;includePreviewPreSignedURLs&#39;: include_preview_pre_signed_urls,
+        &#39;requestedFiles&#39;: []
+    }
+    for syn_file, file_handle in files_and_file_handles:
+        body[&#39;requestedFiles&#39;].append(
+            {
+                &#39;fileHandleId&#39;: self.id_of(file_handle),
+                &#39;associateObjectId&#39;: self.id_of(syn_file),
+                &#39;associateObjectType&#39;: &#39;FileEntity&#39;
+            }
+        )
+
+    res = self.__synapse__.restPOST(&#39;/fileHandle/batch&#39;,
+                                    endpoint=self.__synapse__.fileHandleEndpoint,
+                                    body=json.dumps(body))
+
+    return res.get(&#39;requestedFiles&#39;, [])</code></pre>
+</details>
+</dd>
+<dt id="synapsis.core.synapsis_utils.SynapsisUtils.get_project"><code class="name flex">
+<span>def <span class="ident">get_project</span></span>(<span>self, entity: synapseclient.Entity | str) ‑> synapseclient.entity.Project</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the Project for a child entity (or returns self if entity is a Project).</p>
+<p>:param entity: The Entity to get the Project for.
+:return: Project</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_project(self, entity: synapseclient.Entity | str) -&gt; synapseclient.Project:
+    &#34;&#34;&#34;
+    Gets the Project for a child entity (or returns self if entity is a Project).
+
+    :param entity: The Entity to get the Project for.
+    :return: Project
+    &#34;&#34;&#34;
+    if isinstance(entity, synapseclient.Project):
+        return entity
+    path = self.__synapse__.restGET(&#39;/entity/{0}/path&#39;.format(self.id_of(entity))).get(&#39;path&#39;)[1:][0]
+    return self.__synapse__.get(path[&#39;id&#39;])</code></pre>
+</details>
+</dd>
+<dt id="synapsis.core.synapsis_utils.SynapsisUtils.get_synapse_path"><code class="name flex">
+<span>def <span class="ident">get_synapse_path</span></span>(<span>self, entity: synapseclient.Entity | str) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the absolute path to a Synapse Entity.</p>
+<p>:param entity: Synapse Entity or ID to get the path for.
+:return: str</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_synapse_path(self, entity: synapseclient.Entity | str) -&gt; str:
+    &#34;&#34;&#34;
+    Gets the absolute path to a Synapse Entity.
+
+    :param entity: Synapse Entity or ID to get the path for.
+    :return: str
+    &#34;&#34;&#34;
+    paths = self.__synapse__.restGET(&#39;/entity/{0}/path&#39;.format(self.id_of(entity))).get(&#39;path&#39;)[1:]
+    segments = [p[&#39;name&#39;] for p in paths]
+    return &#39;/&#39;.join(segments)</code></pre>
+</details>
+</dd>
+<dt id="synapsis.core.synapsis_utils.SynapsisUtils.id_of"><code class="name flex">
+<span>def <span class="ident">id_of</span></span>(<span>self, obj: synapseclient.Entity | str | dict | numbers.Number) ‑> str | numbers.Number</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Try to figure out the Synapse ID of the given object.</p>
+<p>:param obj: String, Entity object, or dictionary.
+:return: The ID or throws an exception.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def id_of(self, obj: synapseclient.Entity | str | dict | numbers.Number) -&gt; str | numbers.Number:
+    &#34;&#34;&#34;
+    Try to figure out the Synapse ID of the given object.
+
+    :param obj: String, Entity object, or dictionary.
+    :return: The ID or throws an exception.
+    &#34;&#34;&#34;
+    return id_of(obj)</code></pre>
+</details>
+</dd>
+<dt id="synapsis.core.synapsis_utils.SynapsisUtils.invite_to_team"><code class="name flex">
+<span>def <span class="ident">invite_to_team</span></span>(<span>self, team: synapseclient.Team | str, invitee: synapseclient.UserProfile | str, message: t.Optional[str] = None, force: t.Optional[bool] = False, as_manager: t.Optional[bool] = False) ‑> dict | list[dict, dict] | None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Invite a user or email address to a Team.</p>
+<p>:param team: The Team or ID to invite to.
+:param invitee: The UserProfile, UserProfile.Id, or email address to invite.
+:param message: Optional message to include in the invitation email sent to the invitee.
+:param force: Force a new invitation to be sent if one already exists.
+:param as_manager: True to invite the user as a Manager of the Team. Only applicable for Users, not emails.
+:return: dict of invite response and/or invite response/team manager response.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def invite_to_team(self,
+                   team: synapseclient.Team | str,
+                   invitee: synapseclient.UserProfile | str,
+                   message: t.Optional[str] = None,
+                   force: t.Optional[bool] = False,
+                   as_manager: t.Optional[bool] = False) -&gt; dict | list[dict, dict] | None:
+    &#34;&#34;&#34;
+    Invite a user or email address to a Team.
+
+    :param team: The Team or ID to invite to.
+    :param invitee: The UserProfile, UserProfile.Id, or email address to invite.
+    :param message: Optional message to include in the invitation email sent to the invitee.
+    :param force: Force a new invitation to be sent if one already exists.
+    :param as_manager: True to invite the user as a Manager of the Team. Only applicable for Users, not emails.
+    :return: dict of invite response and/or invite response/team manager response.
+    &#34;&#34;&#34;
+    is_email = True if (isinstance(invitee, str) and &#39;@&#39; in invitee) else False
+    if is_email and as_manager:
+        raise SynapsisError(&#39;Cannot invite emails as managers.&#39;)
+
+    invite_args = {
+        &#39;message&#39;: message,
+        &#39;force&#39;: force
+    }
+
+    if is_email:
+        invite_args[&#39;inviteeEmail&#39;] = invitee
+    else:
+        invite_args[&#39;user&#39;] = invitee
+
+    invite = self.__synapse__.invite_to_team(team, **invite_args)
+
+    if as_manager:
+        manager_res = self.set_team_permission(team, invitee, SynapsePermission.TEAM_MANAGER)
+        return [invite, manager_res]
+    else:
+        return invite</code></pre>
+</details>
+</dd>
+<dt id="synapsis.core.synapsis_utils.SynapsisUtils.is_synapse_id"><code class="name flex">
+<span>def <span class="ident">is_synapse_id</span></span>(<span>self, value: str, exists: bool = False) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets if the value is a Synapse ID and optionally if the Entity exists.</p>
+<p>:param value: String to check.
+:param exists: Check if the Entity exists otherwise only validates the value is a Synapse ID.
+:return: True if the value matches the Synapse ID format otherwise False.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_synapse_id(self, value: str, exists: bool = False) -&gt; bool:
+    &#34;&#34;&#34;
+    Gets if the value is a Synapse ID and optionally if the Entity exists.
+
+    :param value: String to check.
+    :param exists: Check if the Entity exists otherwise only validates the value is a Synapse ID.
+    :return: True if the value matches the Synapse ID format otherwise False.
+    &#34;&#34;&#34;
+    if isinstance(value, str):
+        value = value.strip()
+        is_id = re.match(&#39;^syn[0-9]+$&#39;, value, re.IGNORECASE) is not None
+        if is_id and exists:
+            try:
+                bundle = self.get_bundle(value)
+                return bundle is not None
+            except SynapseFileNotFoundError:
+                return False
+            except (SynapseHTTPError, SynapseAuthenticationError,) as err:
+                status = (err.__context__ and err.__context__.response.status_code) or err.response.status_code
+                if status in (400, 404):
+                    return False
+                # Valid ID but user lacks permission or is not logged in
+                elif status == 403:
+                    return True
+            return False
+        else:
+            return is_id
+    return False</code></pre>
+</details>
+</dd>
+<dt id="synapsis.core.synapsis_utils.SynapsisUtils.md5sum"><code class="name flex">
+<span>def <span class="ident">md5sum</span></span>(<span>self, filename: str, chunk_blocks: t.Optional[int] = 12800, as_bytes: t.Optional[bool] = False) ‑> str | bytes</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the MD5 value for a file.</p>
+<p>:param filename: Path to the file.
+:param chunk_blocks: Read chunk block size. Will be multiplied by md5.block_size.
+:param as_bytes: True to return the MD5 as bytes, otherwise string.
+:return: str or bytes.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def md5sum(self,
+           filename: str,
+           chunk_blocks: t.Optional[int] = 12800,
+           as_bytes: t.Optional[bool] = False) -&gt; str | bytes:
+    &#34;&#34;&#34;
+    Gets the MD5 value for a file.
+
+    :param filename: Path to the file.
+    :param chunk_blocks: Read chunk block size. Will be multiplied by md5.block_size.
+    :param as_bytes: True to return the MD5 as bytes, otherwise string.
+    :return: str or bytes.
+    &#34;&#34;&#34;
+    md5 = hashlib.md5()
+    with open(filename, &#39;rb&#39;) as f:
+        while chunk := f.read(chunk_blocks * md5.block_size):
+            md5.update(chunk)
+    if as_bytes:
+        return md5.digest()
+    else:
+        return md5.hexdigest()</code></pre>
+</details>
+</dd>
+<dt id="synapsis.core.synapsis_utils.SynapsisUtils.sanitize_entity_name"><code class="name flex">
+<span>def <span class="ident">sanitize_entity_name</span></span>(<span>self, name: str, replace_char: t.Optional[str] = '_', return_replaced: t.Optional[bool] = False) ‑> str | list[str, list]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sanitizes the name for an Entity or File.</p>
+<pre><code>The name of an entity.
+    - Must be 256 characters or less.
+    - May only contain: letters, numbers, spaces, underscores, hyphens, periods, plus signs, apostrophes, and parentheses
+    - Not documented but can also accept commas.
+</code></pre>
+<p>:param name: The name to sanitize.
+:param replace_char: The character you use as a replacement.
+:param return_replaced: True to return a list of the replaced characters with the sanitized name.
+:return: The sanitized string or the sanitized string and a list of replaced characters.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def sanitize_entity_name(self,
+                         name: str,
+                         replace_char: t.Optional[str] = &#39;_&#39;,
+                         return_replaced: t.Optional[bool] = False) -&gt; str | list[str, list]:
+    &#34;&#34;&#34;
+    Sanitizes the name for an Entity or File.
+
+        The name of an entity.
+            - Must be 256 characters or less.
+            - May only contain: letters, numbers, spaces, underscores, hyphens, periods, plus signs, apostrophes, and parentheses
+            - Not documented but can also accept commas.
+    :param name: The name to sanitize.
+    :param replace_char: The character you use as a replacement.
+    :param return_replaced: True to return a list of the replaced characters with the sanitized name.
+    :return: The sanitized string or the sanitized string and a list of replaced characters.
+    &#34;&#34;&#34;
+    cleaned = unicodedata.normalize(&#39;NFKD&#39;, name).encode(&#39;ASCII&#39;, &#39;ignore&#39;)
+    new_name = []
+    replaced = []
+    for char in [chr(c) for c in cleaned]:
+        if char in self.__ENTITY_NAME_ALLOWED_CHARS__:
+            new_name.append(char)
+        else:
+            new_name.append(replace_char)
+            if char not in replaced:
+                replaced.append(char)
+    new_name = &#39;&#39;.join(new_name)
+
+    if len(new_name) &gt; self.__ENTITY_NAME_MAX_LEN__:
+        raise SynapsisError(
+            &#39;Entity name exceeds limit of: {0}, Name: {1}&#39;.format(self.__ENTITY_NAME_MAX_LEN__, new_name))
+
+    if return_replaced:
+        return new_name, replaced
+    else:
+        return new_name</code></pre>
+</details>
+</dd>
+<dt id="synapsis.core.synapsis_utils.SynapsisUtils.set_entity_permission"><code class="name flex">
+<span>def <span class="ident">set_entity_permission</span></span>(<span>self, entity: synapseclient.Entity | str, principal: synapseclient.UserProfile | synapseclient.Team | str | numbers.Number, permission: SynapsePermission | PermissionCode | AccessTypes | None) ‑> Optional[dict]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Set the permission on an Entity.</p>
+<p>:param entity: The Entity or ID to change the permission on.
+:param principal: The UserProfile, Team, or ID to change permission on.
+:param permission: SynapsePermission, SynapsePermission.code, list of permissions, or None to remove the permission.
+:return: dict if permission updated else None.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_entity_permission(self,
+                          entity: synapseclient.Entity | str,
+                          principal: synapseclient.UserProfile | synapseclient.Team | str | numbers.Number,
+                          permission: SynapsePermission | PermissionCode | AccessTypes | None) -&gt; dict | None:
+    &#34;&#34;&#34;
+    Set the permission on an Entity.
+
+    :param entity: The Entity or ID to change the permission on.
+    :param principal: The UserProfile, Team, or ID to change permission on.
+    :param permission: SynapsePermission, SynapsePermission.code, list of permissions, or None to remove the permission.
+    :return: dict if permission updated else None.
+    &#34;&#34;&#34;
+    principal_id = self.id_of(principal)
+    permission = self.__to_permission__(permission)
+
+    # Check if the principal has been added to the entity and what permission it has.
+    current_access_types = self.__synapse__.getPermissions(entity, principalId=principal_id)
+    if not permission.equals(current_access_types):
+        return self.__synapse__.setPermissions(entity, principal_id, accessType=permission.access_types)
+    else:
+        return None</code></pre>
+</details>
+</dd>
+<dt id="synapsis.core.synapsis_utils.SynapsisUtils.set_team_permission"><code class="name flex">
+<span>def <span class="ident">set_team_permission</span></span>(<span>self, team: synapseclient.Team | str, user: synapseclient.UserProfile | str, permission: SynapsePermission | PermissionCode | AccessTypes | None) ‑> Optional[dict]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Set the permission for a User on a Team.</p>
+<p>:param team: The Team or ID to set the permission on.
+:param user: The UserProfile or ID to give permission to.
+:param permission: The permission to add or remove.
+:return: dict</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_team_permission(self,
+                        team: synapseclient.Team | str,
+                        user: synapseclient.UserProfile | str,
+                        permission: SynapsePermission | PermissionCode | AccessTypes | None) -&gt; dict | None:
+    &#34;&#34;&#34;
+    Set the permission for a User on a Team.
+
+    :param team: The Team or ID to set the permission on.
+    :param user: The UserProfile or ID to give permission to.
+    :param permission: The permission to add or remove.
+    :return: dict
+    &#34;&#34;&#34;
+    team_id = self.id_of(team)
+    user_id = self.id_of(user)
+    permission = self.__to_permission__(permission)
+
+    team_acl = self.__synapse__.restGET(&#39;/team/{0}/acl&#39;.format(team_id))
+    user_access = utils.find(team_acl[&#39;resourceAccess&#39;], lambda a: str(a.get(&#39;principalId&#39;)) == str(user_id))
+    current_access_types = user_access[&#39;accessType&#39;] if user_access else None
+
+    if permission.equals(current_access_types):
+        return None
+    else:
+        if SynapsePermission.NO_PERMISSION.equals(permission):
+            if user_access:
+                team_acl[&#39;resourceAccess&#39;].remove(user_access)
+        else:
+            new_acl = {&#39;principalId&#39;: user_id, &#39;accessType&#39;: permission.access_types}
+            team_acl[&#39;resourceAccess&#39;].append(new_acl)
+        return self.__synapse__.restPUT(&#34;/team/acl&#34;, body=json.dumps(team_acl))</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="synapsis.core" href="index.html">synapsis.core</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="synapsis.core.synapsis_utils.SynapsisUtils" href="#synapsis.core.synapsis_utils.SynapsisUtils">SynapsisUtils</a></code></h4>
+<ul class="">
+<li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.copy_file_handles_batch" href="#synapsis.core.synapsis_utils.SynapsisUtils.copy_file_handles_batch">copy_file_handles_batch</a></code></li>
+<li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.delete_skip_trash" href="#synapsis.core.synapsis_utils.SynapsisUtils.delete_skip_trash">delete_skip_trash</a></code></li>
+<li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.find_data_file_handle" href="#synapsis.core.synapsis_utils.SynapsisUtils.find_data_file_handle">find_data_file_handle</a></code></li>
+<li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.find_entity" href="#synapsis.core.synapsis_utils.SynapsisUtils.find_entity">find_entity</a></code></li>
+<li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.get_bundle" href="#synapsis.core.synapsis_utils.SynapsisUtils.get_bundle">get_bundle</a></code></li>
+<li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.get_filehandle" href="#synapsis.core.synapsis_utils.SynapsisUtils.get_filehandle">get_filehandle</a></code></li>
+<li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.get_filehandles" href="#synapsis.core.synapsis_utils.SynapsisUtils.get_filehandles">get_filehandles</a></code></li>
+<li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.get_project" href="#synapsis.core.synapsis_utils.SynapsisUtils.get_project">get_project</a></code></li>
+<li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.get_synapse_path" href="#synapsis.core.synapsis_utils.SynapsisUtils.get_synapse_path">get_synapse_path</a></code></li>
+<li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.id_of" href="#synapsis.core.synapsis_utils.SynapsisUtils.id_of">id_of</a></code></li>
+<li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.invite_to_team" href="#synapsis.core.synapsis_utils.SynapsisUtils.invite_to_team">invite_to_team</a></code></li>
+<li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.is_synapse_id" href="#synapsis.core.synapsis_utils.SynapsisUtils.is_synapse_id">is_synapse_id</a></code></li>
+<li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.md5sum" href="#synapsis.core.synapsis_utils.SynapsisUtils.md5sum">md5sum</a></code></li>
+<li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.sanitize_entity_name" href="#synapsis.core.synapsis_utils.SynapsisUtils.sanitize_entity_name">sanitize_entity_name</a></code></li>
+<li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.set_entity_permission" href="#synapsis.core.synapsis_utils.SynapsisUtils.set_entity_permission">set_entity_permission</a></code></li>
+<li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.set_team_permission" href="#synapsis.core.synapsis_utils.SynapsisUtils.set_team_permission">set_team_permission</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
