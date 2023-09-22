@@ -8,7 +8,7 @@ from synapseclient.core.utils import id_of
 from dotenv import load_dotenv
 from synapse_test_helper import SynapseTestHelper
 from synapsis import Synapsis
-from synapsis.core import utils
+from synapsis.core import Utils
 
 load_dotenv()
 
@@ -169,7 +169,7 @@ def is_invited_to_team(synapse_test_helper):
         team_id = id_of(team)
         invitee = id_of(invitee)
         invites = synapse_test_helper.client().restGET('/team/{0}/openInvitation'.format(team_id)).get('results', [])
-        is_invited = utils.find(invites, lambda i: i.get('inviteeEmail', str(i.get('inviteeId', None))) == str(invitee))
+        is_invited = Utils.find(invites, lambda i: i.get('inviteeEmail', str(i.get('inviteeId', None))) == str(invitee))
         return is_invited is not None
 
     yield _m
@@ -181,7 +181,7 @@ def is_manager_on_team(synapse_test_helper):
         team_id = id_of(team)
         user_id = id_of(user)
         acl = synapse_test_helper.client().restGET('/team/{0}/acl'.format(team_id)).get('resourceAccess', [])
-        current_access = utils.find(acl, lambda a: str(a['principalId']) == str(user_id))
+        current_access = Utils.find(acl, lambda a: str(a['principalId']) == str(user_id))
         return acl is not None and current_access is not None and \
             set(current_access['accessType']) == set(Synapsis.Permissions.TEAM_MANAGER.access_types)
 

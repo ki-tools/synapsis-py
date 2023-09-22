@@ -1,7 +1,8 @@
 import pytest
 from synapsis.synapse import SynapsePermission
 from synapsis.core.exceptions import NotFoundError
-from synapsis.core import utils
+from synapsis.core import Utils
+from synapsis.synapse.synapse_permission import SynapsePermissions
 
 entity_permission_codes = [
     'NO_PERMISSION',
@@ -24,26 +25,26 @@ def test_contexts():
     entity_permissions = SynapsePermission.ENTITY_PERMISSIONS
     assert len(entity_permissions) == len(entity_permission_codes)
     for code in entity_permission_codes:
-        p = utils.find(entity_permissions, lambda ep: ep.code == code, None)
+        p = Utils.find(entity_permissions, lambda ep: ep.code == code, None)
         assert p is not None
         assert p.code == code
 
     team_permissions = SynapsePermission.TEAM_PERMISSIONS
     assert len(team_permissions) == len(team_permission_codes)
     for code in team_permission_codes:
-        p = utils.find(team_permissions, lambda ep: ep.code == code, None)
+        p = Utils.find(team_permissions, lambda ep: ep.code == code, None)
         assert p is not None
         assert p.code == code
 
     all_permissions = SynapsePermission.ALL
     assert len(all_permissions) == len(all_permission_codes)
     for code in all_permission_codes:
-        p = utils.find(all_permissions, lambda ep: ep.code == code, None)
+        p = Utils.find(all_permissions, lambda ep: ep.code == code, None)
         assert p is not None
         assert p.code == code
 
 
-def test_lazy_attributes():
+def test_cached_attributes():
     for code in all_permission_codes:
         perm1 = getattr(SynapsePermission, code)
         perm2 = getattr(SynapsePermission, code)

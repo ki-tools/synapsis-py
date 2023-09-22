@@ -1,7 +1,7 @@
 import pytest
 import argparse
 from synapsis import Synapsis, cli
-from synapsis.core import utils, exceptions
+from synapsis.core import Utils, exceptions
 
 
 def new_parser():
@@ -13,7 +13,7 @@ def new_parser():
 def test_it_injects_args():
     parser = new_parser()
     for name in ['--username', '--password', '--auth-token', '--synapse-config']:
-        action = utils.find(parser._actions, lambda a: name in a.option_strings)
+        action = Utils.find(parser._actions, lambda a: name in a.option_strings)
         assert action is not None
 
 

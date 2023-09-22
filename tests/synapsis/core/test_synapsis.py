@@ -1,6 +1,6 @@
 import pytest
 from synapsis import Synapsis
-from synapsis.core import Synapsis as SynapsisClass, SynapsisUtils, exceptions, utils as _utils
+from synapsis.core import Synapsis as SynapsisClass, SynapsisUtils, exceptions, Utils as _Utils
 from synapsis.synapse import Synapse, SynapseUtils
 from synapsis.synapse.synapse_utils import SynapseutilsAttrWrapper
 import synapseclient
@@ -63,7 +63,7 @@ def test_configure(syn_test_credentials, syn_test_auth_token, synapse_test_confi
     # Failed login
     reset()
     with pytest.raises(exceptions.LoginError):
-        assert Synapsis.login()
+        Synapsis.login()
 
     # User/Pass.
     reset()
@@ -120,6 +120,26 @@ def test_configure(syn_test_credentials, syn_test_auth_token, synapse_test_confi
     set_env_vars(config_file=config_path)
     assert_login()
 
+    # Login Hooks
+    reset()
+    callbacks = []
+    assert len(Synapsis.hooks.__hooks__) == 0
+    Synapsis.hooks.after_login(lambda hook: callbacks.append(1))
+    Synapsis.hooks.after_login(lambda hook: callbacks.append(2))
+    assert_login(authToken=syn_test_auth_token)
+    assert callbacks == [1, 2]
+
+    # Does not call AFTER_LOGIN if logging in fails.
+    reset()
+    assert len(Synapsis.hooks.__hooks__[Synapsis.hooks.AFTER_LOGIN]) == 2
+    callbacks = []
+    with pytest.raises(exceptions.LoginError):
+        Synapsis.login()
+    assert callbacks == []
+
+    Synapsis.hooks.clear()
+    assert len(Synapsis.hooks.__hooks__) == 0
+
 
 async def test_it_routes_to_self(synapse_test_helper):
     assert isinstance(Synapsis, SynapsisClass)
@@ -171,7 +191,7 @@ async def test_it_routes_to_synapse_utils(synapse_test_helper):
 
 
 async def test_it_routes_to_utils():
-    assert Synapsis.utils == _utils
+    assert Synapsis.utils == _Utils
     numbers = [1, 2, 3]
     items = [
         Synapsis.utils.first(numbers),

@@ -28,26 +28,105 @@
 </summary>
 <pre><code class="python">from __future__ import annotations
 import typing as t
-from enum import Flag, auto
-from ..core import utils, exceptions, LazyReadOnlyAttribute
+import functools
+from ..core import Utils, exceptions
 
 AccessTypes = t.NewType(&#39;AccessTypes&#39;, list[str])
 PermissionCode = t.NewType(&#39;PermissionCode&#39;, str)
 
 
-class Contexts(Flag):
-    NO_PERMISSION = auto()
-    ENTITY = auto()
-    TEAM = auto()
-    PERMISSIONS = NO_PERMISSION | ENTITY | TEAM
+class SynapsePermissions(type):
+    @property
+    @functools.cache
+    def ALL(cls) -&gt; list[SynapsePermission]:
+        return [cls.NO_PERMISSION] + Utils.select(cls.ENTITY_PERMISSIONS + cls.TEAM_PERMISSIONS,
+                                                  lambda p: p.code != cls.NO_PERMISSION.code)
 
-    ATTR_ALL_PERMISSIONS = auto()
-    ATTR_ENTITY_PERMISSIONS = auto()
-    ATTR_TEAM_PERMISSIONS = auto()
-    ATTRIBUTES = ATTR_ALL_PERMISSIONS | ATTR_ENTITY_PERMISSIONS | ATTR_TEAM_PERMISSIONS
+    @property
+    @functools.cache
+    def ENTITY_PERMISSIONS(cls) -&gt; list[SynapsePermission]:
+        return [
+            cls.NO_PERMISSION,
+            cls.ADMIN,
+            cls.CAN_EDIT_AND_DELETE,
+            cls.CAN_EDIT,
+            cls.CAN_DOWNLOAD,
+            cls.CAN_VIEW
+        ]
+
+    @property
+    @functools.cache
+    def TEAM_PERMISSIONS(cls) -&gt; list[SynapsePermission]:
+        return [cls.NO_PERMISSION, cls.TEAM_MANAGER]
+
+    @property
+    @functools.cache
+    def NO_PERMISSION(cls) -&gt; SynapsePermission:
+        return SynapsePermission(&#39;NO_PERMISSION&#39;, &#39;No Permission&#39;, [])
+
+    @property
+    @functools.cache
+    def ADMIN(cls) -&gt; SynapsePermission:
+        return SynapsePermission(&#39;ADMIN&#39;,
+                                 &#39;Administrator&#39;,
+                                 [&#39;UPDATE&#39;,
+                                  &#39;DELETE&#39;,
+                                  &#39;CHANGE_PERMISSIONS&#39;,
+                                  &#39;CHANGE_SETTINGS&#39;,
+                                  &#39;CREATE&#39;,
+                                  &#39;DOWNLOAD&#39;,
+                                  &#39;READ&#39;,
+                                  &#39;MODERATE&#39;])
+
+    @property
+    @functools.cache
+    def CAN_EDIT_AND_DELETE(cls) -&gt; SynapsePermission:
+        return SynapsePermission(&#39;CAN_EDIT_AND_DELETE&#39;,
+                                 &#39;Can Edit and Delete&#39;,
+                                 [&#39;DOWNLOAD&#39;,
+                                  &#39;UPDATE&#39;,
+                                  &#39;CREATE&#39;,
+                                  &#39;DELETE&#39;,
+                                  &#39;READ&#39;])
+
+    @property
+    @functools.cache
+    def CAN_EDIT(cls) -&gt; SynapsePermission:
+        return SynapsePermission(&#39;CAN_EDIT&#39;,
+                                 &#39;Can Edit&#39;,
+                                 [&#39;DOWNLOAD&#39;,
+                                  &#39;UPDATE&#39;,
+                                  &#39;CREATE&#39;,
+                                  &#39;READ&#39;])
+
+    @property
+    @functools.cache
+    def CAN_DOWNLOAD(cls) -&gt; SynapsePermission:
+        return SynapsePermission(&#39;CAN_DOWNLOAD&#39;,
+                                 &#39;Can Download&#39;,
+                                 [&#39;DOWNLOAD&#39;,
+                                  &#39;READ&#39;])
+
+    @property
+    @functools.cache
+    def CAN_VIEW(cls) -&gt; SynapsePermission:
+        return SynapsePermission(&#39;CAN_VIEW&#39;,
+                                 &#39;Can View&#39;,
+                                 [&#39;READ&#39;])
+
+    @property
+    @functools.cache
+    def TEAM_MANAGER(cls) -&gt; SynapsePermission:
+        return SynapsePermission(&#39;TEAM_MANAGER&#39;,
+                                 &#39;Team Manager&#39;,
+                                 [&#39;SEND_MESSAGE&#39;,
+                                  &#39;READ&#39;,
+                                  &#39;UPDATE&#39;,
+                                  &#39;TEAM_MEMBERSHIP_UPDATE&#39;,
+                                  &#39;DELETE&#39;])
 
 
-class SynapsePermission(object):
+class SynapsePermission(object, metaclass=SynapsePermissions):
     code: PermissionCode
     name: str
     access_types: AccessTypes
@@ -79,89 +158,13 @@ class SynapsePermission(object):
         access_types = [a.upper() for a in access_types] if access_types is not None else None
         if code is None and access_types is None:
             raise ValueError(&#39;code or access_types are required.&#39;)
-        found = utils.find(cls.ALL,
+        found = Utils.find(cls.ALL,
                            lambda p: p.code == (code if code else p.code) and
                                      set(p.access_types) == set(access_types if access_types else p.access_types))
         if raises and found is None:
             raise exceptions.NotFoundError(
                 &#39;Could not find SynapsePermission with code: {0}, access_types: {1}.&#39;.format(code, access_types))
-        return found
-
-    @classmethod
-    def __all__(cls, context: t.Optional[Contexts] = Contexts.PERMISSIONS) -&gt; list[SynapsePermission]:
-        &#34;&#34;&#34;
-        Gets all the SynapsePermissions.
-
-        :return: list of SynapsePermission
-        &#34;&#34;&#34;
-        return [a.__get__(None, cls) for _, a in
-                utils.select(LazyReadOnlyAttribute.find(cls),
-                             lambda a: a[-1].context &amp; context if context else not a[-1].context &amp; Contexts.ATTRIBUTES)]
-
-    ALL: t.ClassVar[list[SynapsePermission]] = \
-        LazyReadOnlyAttribute(__all__, context=Contexts.PERMISSIONS, _context=Contexts.ATTR_ALL_PERMISSIONS,
-                              _singleton=True)
-
-    ENTITY_PERMISSIONS: t.Final[list[SynapsePermission]] = \
-        LazyReadOnlyAttribute(__all__, context=Contexts.ENTITY, _context=Contexts.ATTR_ENTITY_PERMISSIONS,
-                              _singleton=True)
-
-    TEAM_PERMISSIONS: t.Final[list[SynapsePermission]] = \
-        LazyReadOnlyAttribute(__all__, context=Contexts.TEAM, _context=Contexts.ATTR_TEAM_PERMISSIONS, _singleton=True)
-
-    NO_PERMISSION: t.Final[SynapsePermission] = \
-        LazyReadOnlyAttribute(lambda: SynapsePermission(&#39;NO_PERMISSION&#39;,
-                                                        &#39;No Permission&#39;, []),
-                              _context=Contexts.NO_PERMISSION | Contexts.ENTITY | Contexts.TEAM, _singleton=True)
-
-    ADMIN: t.Final[SynapsePermission] = \
-        LazyReadOnlyAttribute(lambda: SynapsePermission(&#39;ADMIN&#39;,
-                                                        &#39;Administrator&#39;,
-                                                        [&#39;UPDATE&#39;,
-                                                         &#39;DELETE&#39;,
-                                                         &#39;CHANGE_PERMISSIONS&#39;,
-                                                         &#39;CHANGE_SETTINGS&#39;,
-                                                         &#39;CREATE&#39;,
-                                                         &#39;DOWNLOAD&#39;,
-                                                         &#39;READ&#39;,
-                                                         &#39;MODERATE&#39;]), _context=Contexts.ENTITY, _singleton=True)
-
-    CAN_EDIT_AND_DELETE: t.Final[SynapsePermission] = \
-        LazyReadOnlyAttribute(lambda: SynapsePermission(&#39;CAN_EDIT_AND_DELETE&#39;,
-                                                        &#39;Can Edit and Delete&#39;,
-                                                        [&#39;DOWNLOAD&#39;,
-                                                         &#39;UPDATE&#39;,
-                                                         &#39;CREATE&#39;,
-                                                         &#39;DELETE&#39;,
-                                                         &#39;READ&#39;]), _context=Contexts.ENTITY, _singleton=True)
-
-    CAN_EDIT: t.Final[SynapsePermission] = \
-        LazyReadOnlyAttribute(lambda: SynapsePermission(&#39;CAN_EDIT&#39;,
-                                                        &#39;Can Edit&#39;,
-                                                        [&#39;DOWNLOAD&#39;,
-                                                         &#39;UPDATE&#39;,
-                                                         &#39;CREATE&#39;,
-                                                         &#39;READ&#39;]), _context=Contexts.ENTITY, _singleton=True)
-
-    CAN_DOWNLOAD: t.Final[SynapsePermission] = \
-        LazyReadOnlyAttribute(lambda: SynapsePermission(&#39;CAN_DOWNLOAD&#39;,
-                                                        &#39;Can Download&#39;,
-                                                        [&#39;DOWNLOAD&#39;,
-                                                         &#39;READ&#39;]), _context=Contexts.ENTITY, _singleton=True)
-
-    CAN_VIEW: t.Final[SynapsePermission] = \
-        LazyReadOnlyAttribute(lambda: SynapsePermission(&#39;CAN_VIEW&#39;,
-                                                        &#39;Can View&#39;,
-                                                        [&#39;READ&#39;]), _context=Contexts.ENTITY, _singleton=True)
-
-    TEAM_MANAGER: t.Final[SynapsePermission] = \
-        LazyReadOnlyAttribute(lambda: SynapsePermission(&#39;TEAM_MANAGER&#39;,
-                                                        &#39;Team Manager&#39;,
-                                                        [&#39;SEND_MESSAGE&#39;,
-                                                         &#39;READ&#39;,
-                                                         &#39;UPDATE&#39;,
-                                                         &#39;TEAM_MEMBERSHIP_UPDATE&#39;,
-                                                         &#39;DELETE&#39;]), _context=Contexts.TEAM, _singleton=True)</code></pre>
+        return found</code></pre>
 </details>
 </section>
 <section>
@@ -173,68 +176,6 @@ class SynapsePermission(object):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="synapsis.synapse.synapse_permission.Contexts"><code class="flex name class">
-<span>class <span class="ident">Contexts</span></span>
-<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>An enumeration.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Contexts(Flag):
-    NO_PERMISSION = auto()
-    ENTITY = auto()
-    TEAM = auto()
-    PERMISSIONS = NO_PERMISSION | ENTITY | TEAM
-
-    ATTR_ALL_PERMISSIONS = auto()
-    ATTR_ENTITY_PERMISSIONS = auto()
-    ATTR_TEAM_PERMISSIONS = auto()
-    ATTRIBUTES = ATTR_ALL_PERMISSIONS | ATTR_ENTITY_PERMISSIONS | ATTR_TEAM_PERMISSIONS</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>enum.Flag</li>
-<li>enum.Enum</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="synapsis.synapse.synapse_permission.Contexts.ATTRIBUTES"><code class="name">var <span class="ident">ATTRIBUTES</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="synapsis.synapse.synapse_permission.Contexts.ATTR_ALL_PERMISSIONS"><code class="name">var <span class="ident">ATTR_ALL_PERMISSIONS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="synapsis.synapse.synapse_permission.Contexts.ATTR_ENTITY_PERMISSIONS"><code class="name">var <span class="ident">ATTR_ENTITY_PERMISSIONS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="synapsis.synapse.synapse_permission.Contexts.ATTR_TEAM_PERMISSIONS"><code class="name">var <span class="ident">ATTR_TEAM_PERMISSIONS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="synapsis.synapse.synapse_permission.Contexts.ENTITY"><code class="name">var <span class="ident">ENTITY</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="synapsis.synapse.synapse_permission.Contexts.NO_PERMISSION"><code class="name">var <span class="ident">NO_PERMISSION</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="synapsis.synapse.synapse_permission.Contexts.PERMISSIONS"><code class="name">var <span class="ident">PERMISSIONS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="synapsis.synapse.synapse_permission.Contexts.TEAM"><code class="name">var <span class="ident">TEAM</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-</dd>
 <dt id="synapsis.synapse.synapse_permission.SynapsePermission"><code class="flex name class">
 <span>class <span class="ident">SynapsePermission</span></span>
 <span>(</span><span>code: PermissionCode, name: str, access_types: AccessTypes)</span>
@@ -245,7 +186,7 @@ class SynapsePermission(object):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class SynapsePermission(object):
+<pre><code class="python">class SynapsePermission(object, metaclass=SynapsePermissions):
     code: PermissionCode
     name: str
     access_types: AccessTypes
@@ -277,132 +218,16 @@ class SynapsePermission(object):
         access_types = [a.upper() for a in access_types] if access_types is not None else None
         if code is None and access_types is None:
             raise ValueError(&#39;code or access_types are required.&#39;)
-        found = utils.find(cls.ALL,
+        found = Utils.find(cls.ALL,
                            lambda p: p.code == (code if code else p.code) and
                                      set(p.access_types) == set(access_types if access_types else p.access_types))
         if raises and found is None:
             raise exceptions.NotFoundError(
                 &#39;Could not find SynapsePermission with code: {0}, access_types: {1}.&#39;.format(code, access_types))
-        return found
-
-    @classmethod
-    def __all__(cls, context: t.Optional[Contexts] = Contexts.PERMISSIONS) -&gt; list[SynapsePermission]:
-        &#34;&#34;&#34;
-        Gets all the SynapsePermissions.
-
-        :return: list of SynapsePermission
-        &#34;&#34;&#34;
-        return [a.__get__(None, cls) for _, a in
-                utils.select(LazyReadOnlyAttribute.find(cls),
-                             lambda a: a[-1].context &amp; context if context else not a[-1].context &amp; Contexts.ATTRIBUTES)]
-
-    ALL: t.ClassVar[list[SynapsePermission]] = \
-        LazyReadOnlyAttribute(__all__, context=Contexts.PERMISSIONS, _context=Contexts.ATTR_ALL_PERMISSIONS,
-                              _singleton=True)
-
-    ENTITY_PERMISSIONS: t.Final[list[SynapsePermission]] = \
-        LazyReadOnlyAttribute(__all__, context=Contexts.ENTITY, _context=Contexts.ATTR_ENTITY_PERMISSIONS,
-                              _singleton=True)
-
-    TEAM_PERMISSIONS: t.Final[list[SynapsePermission]] = \
-        LazyReadOnlyAttribute(__all__, context=Contexts.TEAM, _context=Contexts.ATTR_TEAM_PERMISSIONS, _singleton=True)
-
-    NO_PERMISSION: t.Final[SynapsePermission] = \
-        LazyReadOnlyAttribute(lambda: SynapsePermission(&#39;NO_PERMISSION&#39;,
-                                                        &#39;No Permission&#39;, []),
-                              _context=Contexts.NO_PERMISSION | Contexts.ENTITY | Contexts.TEAM, _singleton=True)
-
-    ADMIN: t.Final[SynapsePermission] = \
-        LazyReadOnlyAttribute(lambda: SynapsePermission(&#39;ADMIN&#39;,
-                                                        &#39;Administrator&#39;,
-                                                        [&#39;UPDATE&#39;,
-                                                         &#39;DELETE&#39;,
-                                                         &#39;CHANGE_PERMISSIONS&#39;,
-                                                         &#39;CHANGE_SETTINGS&#39;,
-                                                         &#39;CREATE&#39;,
-                                                         &#39;DOWNLOAD&#39;,
-                                                         &#39;READ&#39;,
-                                                         &#39;MODERATE&#39;]), _context=Contexts.ENTITY, _singleton=True)
-
-    CAN_EDIT_AND_DELETE: t.Final[SynapsePermission] = \
-        LazyReadOnlyAttribute(lambda: SynapsePermission(&#39;CAN_EDIT_AND_DELETE&#39;,
-                                                        &#39;Can Edit and Delete&#39;,
-                                                        [&#39;DOWNLOAD&#39;,
-                                                         &#39;UPDATE&#39;,
-                                                         &#39;CREATE&#39;,
-                                                         &#39;DELETE&#39;,
-                                                         &#39;READ&#39;]), _context=Contexts.ENTITY, _singleton=True)
-
-    CAN_EDIT: t.Final[SynapsePermission] = \
-        LazyReadOnlyAttribute(lambda: SynapsePermission(&#39;CAN_EDIT&#39;,
-                                                        &#39;Can Edit&#39;,
-                                                        [&#39;DOWNLOAD&#39;,
-                                                         &#39;UPDATE&#39;,
-                                                         &#39;CREATE&#39;,
-                                                         &#39;READ&#39;]), _context=Contexts.ENTITY, _singleton=True)
-
-    CAN_DOWNLOAD: t.Final[SynapsePermission] = \
-        LazyReadOnlyAttribute(lambda: SynapsePermission(&#39;CAN_DOWNLOAD&#39;,
-                                                        &#39;Can Download&#39;,
-                                                        [&#39;DOWNLOAD&#39;,
-                                                         &#39;READ&#39;]), _context=Contexts.ENTITY, _singleton=True)
-
-    CAN_VIEW: t.Final[SynapsePermission] = \
-        LazyReadOnlyAttribute(lambda: SynapsePermission(&#39;CAN_VIEW&#39;,
-                                                        &#39;Can View&#39;,
-                                                        [&#39;READ&#39;]), _context=Contexts.ENTITY, _singleton=True)
-
-    TEAM_MANAGER: t.Final[SynapsePermission] = \
-        LazyReadOnlyAttribute(lambda: SynapsePermission(&#39;TEAM_MANAGER&#39;,
-                                                        &#39;Team Manager&#39;,
-                                                        [&#39;SEND_MESSAGE&#39;,
-                                                         &#39;READ&#39;,
-                                                         &#39;UPDATE&#39;,
-                                                         &#39;TEAM_MEMBERSHIP_UPDATE&#39;,
-                                                         &#39;DELETE&#39;]), _context=Contexts.TEAM, _singleton=True)</code></pre>
+        return found</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
-<dt id="synapsis.synapse.synapse_permission.SynapsePermission.ADMIN"><code class="name">var <span class="ident">ADMIN</span> : Final[<a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a>]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="synapsis.synapse.synapse_permission.SynapsePermission.ALL"><code class="name">var <span class="ident">ALL</span> : ClassVar[list[<a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a>]]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="synapsis.synapse.synapse_permission.SynapsePermission.CAN_DOWNLOAD"><code class="name">var <span class="ident">CAN_DOWNLOAD</span> : Final[<a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a>]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="synapsis.synapse.synapse_permission.SynapsePermission.CAN_EDIT"><code class="name">var <span class="ident">CAN_EDIT</span> : Final[<a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a>]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="synapsis.synapse.synapse_permission.SynapsePermission.CAN_EDIT_AND_DELETE"><code class="name">var <span class="ident">CAN_EDIT_AND_DELETE</span> : Final[<a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a>]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="synapsis.synapse.synapse_permission.SynapsePermission.CAN_VIEW"><code class="name">var <span class="ident">CAN_VIEW</span> : Final[<a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a>]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="synapsis.synapse.synapse_permission.SynapsePermission.ENTITY_PERMISSIONS"><code class="name">var <span class="ident">ENTITY_PERMISSIONS</span> : Final[list[<a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a>]]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="synapsis.synapse.synapse_permission.SynapsePermission.NO_PERMISSION"><code class="name">var <span class="ident">NO_PERMISSION</span> : Final[<a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a>]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="synapsis.synapse.synapse_permission.SynapsePermission.TEAM_MANAGER"><code class="name">var <span class="ident">TEAM_MANAGER</span> : Final[<a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a>]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="synapsis.synapse.synapse_permission.SynapsePermission.TEAM_PERMISSIONS"><code class="name">var <span class="ident">TEAM_PERMISSIONS</span> : Final[list[<a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a>]]</code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
 <dt id="synapsis.synapse.synapse_permission.SynapsePermission.access_types"><code class="name">var <span class="ident">access_types</span> : synapsis.synapse.synapse_permission.AccessTypes</code></dt>
 <dd>
 <div class="desc"></div>
@@ -455,7 +280,7 @@ def find_by(cls,
     access_types = [a.upper() for a in access_types] if access_types is not None else None
     if code is None and access_types is None:
         raise ValueError(&#39;code or access_types are required.&#39;)
-    found = utils.find(cls.ALL,
+    found = Utils.find(cls.ALL,
                        lambda p: p.code == (code if code else p.code) and
                                  set(p.access_types) == set(access_types if access_types else p.access_types))
     if raises and found is None:
@@ -483,6 +308,284 @@ def find_by(cls,
 </dd>
 </dl>
 </dd>
+<dt id="synapsis.synapse.synapse_permission.SynapsePermissions"><code class="flex name class">
+<span>class <span class="ident">SynapsePermissions</span></span>
+<span>(</span><span>*args, **kwargs)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>type(object) -&gt; the object's type
+type(name, bases, dict, **kwds) -&gt; a new type</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class SynapsePermissions(type):
+    @property
+    @functools.cache
+    def ALL(cls) -&gt; list[SynapsePermission]:
+        return [cls.NO_PERMISSION] + Utils.select(cls.ENTITY_PERMISSIONS + cls.TEAM_PERMISSIONS,
+                                                  lambda p: p.code != cls.NO_PERMISSION.code)
+
+    @property
+    @functools.cache
+    def ENTITY_PERMISSIONS(cls) -&gt; list[SynapsePermission]:
+        return [
+            cls.NO_PERMISSION,
+            cls.ADMIN,
+            cls.CAN_EDIT_AND_DELETE,
+            cls.CAN_EDIT,
+            cls.CAN_DOWNLOAD,
+            cls.CAN_VIEW
+        ]
+
+    @property
+    @functools.cache
+    def TEAM_PERMISSIONS(cls) -&gt; list[SynapsePermission]:
+        return [cls.NO_PERMISSION, cls.TEAM_MANAGER]
+
+    @property
+    @functools.cache
+    def NO_PERMISSION(cls) -&gt; SynapsePermission:
+        return SynapsePermission(&#39;NO_PERMISSION&#39;, &#39;No Permission&#39;, [])
+
+    @property
+    @functools.cache
+    def ADMIN(cls) -&gt; SynapsePermission:
+        return SynapsePermission(&#39;ADMIN&#39;,
+                                 &#39;Administrator&#39;,
+                                 [&#39;UPDATE&#39;,
+                                  &#39;DELETE&#39;,
+                                  &#39;CHANGE_PERMISSIONS&#39;,
+                                  &#39;CHANGE_SETTINGS&#39;,
+                                  &#39;CREATE&#39;,
+                                  &#39;DOWNLOAD&#39;,
+                                  &#39;READ&#39;,
+                                  &#39;MODERATE&#39;])
+
+    @property
+    @functools.cache
+    def CAN_EDIT_AND_DELETE(cls) -&gt; SynapsePermission:
+        return SynapsePermission(&#39;CAN_EDIT_AND_DELETE&#39;,
+                                 &#39;Can Edit and Delete&#39;,
+                                 [&#39;DOWNLOAD&#39;,
+                                  &#39;UPDATE&#39;,
+                                  &#39;CREATE&#39;,
+                                  &#39;DELETE&#39;,
+                                  &#39;READ&#39;])
+
+    @property
+    @functools.cache
+    def CAN_EDIT(cls) -&gt; SynapsePermission:
+        return SynapsePermission(&#39;CAN_EDIT&#39;,
+                                 &#39;Can Edit&#39;,
+                                 [&#39;DOWNLOAD&#39;,
+                                  &#39;UPDATE&#39;,
+                                  &#39;CREATE&#39;,
+                                  &#39;READ&#39;])
+
+    @property
+    @functools.cache
+    def CAN_DOWNLOAD(cls) -&gt; SynapsePermission:
+        return SynapsePermission(&#39;CAN_DOWNLOAD&#39;,
+                                 &#39;Can Download&#39;,
+                                 [&#39;DOWNLOAD&#39;,
+                                  &#39;READ&#39;])
+
+    @property
+    @functools.cache
+    def CAN_VIEW(cls) -&gt; SynapsePermission:
+        return SynapsePermission(&#39;CAN_VIEW&#39;,
+                                 &#39;Can View&#39;,
+                                 [&#39;READ&#39;])
+
+    @property
+    @functools.cache
+    def TEAM_MANAGER(cls) -&gt; SynapsePermission:
+        return SynapsePermission(&#39;TEAM_MANAGER&#39;,
+                                 &#39;Team Manager&#39;,
+                                 [&#39;SEND_MESSAGE&#39;,
+                                  &#39;READ&#39;,
+                                  &#39;UPDATE&#39;,
+                                  &#39;TEAM_MEMBERSHIP_UPDATE&#39;,
+                                  &#39;DELETE&#39;])</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>builtins.type</li>
+</ul>
+<h3>Instance variables</h3>
+<dl>
+<dt id="synapsis.synapse.synapse_permission.SynapsePermissions.ADMIN"><code class="name">var <span class="ident">ADMIN</span> : <a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+@functools.cache
+def ADMIN(cls) -&gt; SynapsePermission:
+    return SynapsePermission(&#39;ADMIN&#39;,
+                             &#39;Administrator&#39;,
+                             [&#39;UPDATE&#39;,
+                              &#39;DELETE&#39;,
+                              &#39;CHANGE_PERMISSIONS&#39;,
+                              &#39;CHANGE_SETTINGS&#39;,
+                              &#39;CREATE&#39;,
+                              &#39;DOWNLOAD&#39;,
+                              &#39;READ&#39;,
+                              &#39;MODERATE&#39;])</code></pre>
+</details>
+</dd>
+<dt id="synapsis.synapse.synapse_permission.SynapsePermissions.ALL"><code class="name">var <span class="ident">ALL</span> : list[<a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+@functools.cache
+def ALL(cls) -&gt; list[SynapsePermission]:
+    return [cls.NO_PERMISSION] + Utils.select(cls.ENTITY_PERMISSIONS + cls.TEAM_PERMISSIONS,
+                                              lambda p: p.code != cls.NO_PERMISSION.code)</code></pre>
+</details>
+</dd>
+<dt id="synapsis.synapse.synapse_permission.SynapsePermissions.CAN_DOWNLOAD"><code class="name">var <span class="ident">CAN_DOWNLOAD</span> : <a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+@functools.cache
+def CAN_DOWNLOAD(cls) -&gt; SynapsePermission:
+    return SynapsePermission(&#39;CAN_DOWNLOAD&#39;,
+                             &#39;Can Download&#39;,
+                             [&#39;DOWNLOAD&#39;,
+                              &#39;READ&#39;])</code></pre>
+</details>
+</dd>
+<dt id="synapsis.synapse.synapse_permission.SynapsePermissions.CAN_EDIT"><code class="name">var <span class="ident">CAN_EDIT</span> : <a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+@functools.cache
+def CAN_EDIT(cls) -&gt; SynapsePermission:
+    return SynapsePermission(&#39;CAN_EDIT&#39;,
+                             &#39;Can Edit&#39;,
+                             [&#39;DOWNLOAD&#39;,
+                              &#39;UPDATE&#39;,
+                              &#39;CREATE&#39;,
+                              &#39;READ&#39;])</code></pre>
+</details>
+</dd>
+<dt id="synapsis.synapse.synapse_permission.SynapsePermissions.CAN_EDIT_AND_DELETE"><code class="name">var <span class="ident">CAN_EDIT_AND_DELETE</span> : <a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+@functools.cache
+def CAN_EDIT_AND_DELETE(cls) -&gt; SynapsePermission:
+    return SynapsePermission(&#39;CAN_EDIT_AND_DELETE&#39;,
+                             &#39;Can Edit and Delete&#39;,
+                             [&#39;DOWNLOAD&#39;,
+                              &#39;UPDATE&#39;,
+                              &#39;CREATE&#39;,
+                              &#39;DELETE&#39;,
+                              &#39;READ&#39;])</code></pre>
+</details>
+</dd>
+<dt id="synapsis.synapse.synapse_permission.SynapsePermissions.CAN_VIEW"><code class="name">var <span class="ident">CAN_VIEW</span> : <a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+@functools.cache
+def CAN_VIEW(cls) -&gt; SynapsePermission:
+    return SynapsePermission(&#39;CAN_VIEW&#39;,
+                             &#39;Can View&#39;,
+                             [&#39;READ&#39;])</code></pre>
+</details>
+</dd>
+<dt id="synapsis.synapse.synapse_permission.SynapsePermissions.ENTITY_PERMISSIONS"><code class="name">var <span class="ident">ENTITY_PERMISSIONS</span> : list[<a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+@functools.cache
+def ENTITY_PERMISSIONS(cls) -&gt; list[SynapsePermission]:
+    return [
+        cls.NO_PERMISSION,
+        cls.ADMIN,
+        cls.CAN_EDIT_AND_DELETE,
+        cls.CAN_EDIT,
+        cls.CAN_DOWNLOAD,
+        cls.CAN_VIEW
+    ]</code></pre>
+</details>
+</dd>
+<dt id="synapsis.synapse.synapse_permission.SynapsePermissions.NO_PERMISSION"><code class="name">var <span class="ident">NO_PERMISSION</span> : <a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+@functools.cache
+def NO_PERMISSION(cls) -&gt; SynapsePermission:
+    return SynapsePermission(&#39;NO_PERMISSION&#39;, &#39;No Permission&#39;, [])</code></pre>
+</details>
+</dd>
+<dt id="synapsis.synapse.synapse_permission.SynapsePermissions.TEAM_MANAGER"><code class="name">var <span class="ident">TEAM_MANAGER</span> : <a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a></code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+@functools.cache
+def TEAM_MANAGER(cls) -&gt; SynapsePermission:
+    return SynapsePermission(&#39;TEAM_MANAGER&#39;,
+                             &#39;Team Manager&#39;,
+                             [&#39;SEND_MESSAGE&#39;,
+                              &#39;READ&#39;,
+                              &#39;UPDATE&#39;,
+                              &#39;TEAM_MEMBERSHIP_UPDATE&#39;,
+                              &#39;DELETE&#39;])</code></pre>
+</details>
+</dd>
+<dt id="synapsis.synapse.synapse_permission.SynapsePermissions.TEAM_PERMISSIONS"><code class="name">var <span class="ident">TEAM_PERMISSIONS</span> : list[<a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+@functools.cache
+def TEAM_PERMISSIONS(cls) -&gt; list[SynapsePermission]:
+    return [cls.NO_PERMISSION, cls.TEAM_MANAGER]</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
 </dl>
 </section>
 </article>
@@ -500,37 +603,29 @@ def find_by(cls,
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="synapsis.synapse.synapse_permission.Contexts" href="#synapsis.synapse.synapse_permission.Contexts">Contexts</a></code></h4>
-<ul class="">
-<li><code><a title="synapsis.synapse.synapse_permission.Contexts.ATTRIBUTES" href="#synapsis.synapse.synapse_permission.Contexts.ATTRIBUTES">ATTRIBUTES</a></code></li>
-<li><code><a title="synapsis.synapse.synapse_permission.Contexts.ATTR_ALL_PERMISSIONS" href="#synapsis.synapse.synapse_permission.Contexts.ATTR_ALL_PERMISSIONS">ATTR_ALL_PERMISSIONS</a></code></li>
-<li><code><a title="synapsis.synapse.synapse_permission.Contexts.ATTR_ENTITY_PERMISSIONS" href="#synapsis.synapse.synapse_permission.Contexts.ATTR_ENTITY_PERMISSIONS">ATTR_ENTITY_PERMISSIONS</a></code></li>
-<li><code><a title="synapsis.synapse.synapse_permission.Contexts.ATTR_TEAM_PERMISSIONS" href="#synapsis.synapse.synapse_permission.Contexts.ATTR_TEAM_PERMISSIONS">ATTR_TEAM_PERMISSIONS</a></code></li>
-<li><code><a title="synapsis.synapse.synapse_permission.Contexts.ENTITY" href="#synapsis.synapse.synapse_permission.Contexts.ENTITY">ENTITY</a></code></li>
-<li><code><a title="synapsis.synapse.synapse_permission.Contexts.NO_PERMISSION" href="#synapsis.synapse.synapse_permission.Contexts.NO_PERMISSION">NO_PERMISSION</a></code></li>
-<li><code><a title="synapsis.synapse.synapse_permission.Contexts.PERMISSIONS" href="#synapsis.synapse.synapse_permission.Contexts.PERMISSIONS">PERMISSIONS</a></code></li>
-<li><code><a title="synapsis.synapse.synapse_permission.Contexts.TEAM" href="#synapsis.synapse.synapse_permission.Contexts.TEAM">TEAM</a></code></li>
-</ul>
-</li>
-<li>
 <h4><code><a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a></code></h4>
 <ul class="two-column">
-<li><code><a title="synapsis.synapse.synapse_permission.SynapsePermission.ADMIN" href="#synapsis.synapse.synapse_permission.SynapsePermission.ADMIN">ADMIN</a></code></li>
-<li><code><a title="synapsis.synapse.synapse_permission.SynapsePermission.ALL" href="#synapsis.synapse.synapse_permission.SynapsePermission.ALL">ALL</a></code></li>
-<li><code><a title="synapsis.synapse.synapse_permission.SynapsePermission.CAN_DOWNLOAD" href="#synapsis.synapse.synapse_permission.SynapsePermission.CAN_DOWNLOAD">CAN_DOWNLOAD</a></code></li>
-<li><code><a title="synapsis.synapse.synapse_permission.SynapsePermission.CAN_EDIT" href="#synapsis.synapse.synapse_permission.SynapsePermission.CAN_EDIT">CAN_EDIT</a></code></li>
-<li><code><a title="synapsis.synapse.synapse_permission.SynapsePermission.CAN_EDIT_AND_DELETE" href="#synapsis.synapse.synapse_permission.SynapsePermission.CAN_EDIT_AND_DELETE">CAN_EDIT_AND_DELETE</a></code></li>
-<li><code><a title="synapsis.synapse.synapse_permission.SynapsePermission.CAN_VIEW" href="#synapsis.synapse.synapse_permission.SynapsePermission.CAN_VIEW">CAN_VIEW</a></code></li>
-<li><code><a title="synapsis.synapse.synapse_permission.SynapsePermission.ENTITY_PERMISSIONS" href="#synapsis.synapse.synapse_permission.SynapsePermission.ENTITY_PERMISSIONS">ENTITY_PERMISSIONS</a></code></li>
-<li><code><a title="synapsis.synapse.synapse_permission.SynapsePermission.NO_PERMISSION" href="#synapsis.synapse.synapse_permission.SynapsePermission.NO_PERMISSION">NO_PERMISSION</a></code></li>
-<li><code><a title="synapsis.synapse.synapse_permission.SynapsePermission.TEAM_MANAGER" href="#synapsis.synapse.synapse_permission.SynapsePermission.TEAM_MANAGER">TEAM_MANAGER</a></code></li>
-<li><code><a title="synapsis.synapse.synapse_permission.SynapsePermission.TEAM_PERMISSIONS" href="#synapsis.synapse.synapse_permission.SynapsePermission.TEAM_PERMISSIONS">TEAM_PERMISSIONS</a></code></li>
 <li><code><a title="synapsis.synapse.synapse_permission.SynapsePermission.access_types" href="#synapsis.synapse.synapse_permission.SynapsePermission.access_types">access_types</a></code></li>
 <li><code><a title="synapsis.synapse.synapse_permission.SynapsePermission.are_equal" href="#synapsis.synapse.synapse_permission.SynapsePermission.are_equal">are_equal</a></code></li>
 <li><code><a title="synapsis.synapse.synapse_permission.SynapsePermission.code" href="#synapsis.synapse.synapse_permission.SynapsePermission.code">code</a></code></li>
 <li><code><a title="synapsis.synapse.synapse_permission.SynapsePermission.equals" href="#synapsis.synapse.synapse_permission.SynapsePermission.equals">equals</a></code></li>
 <li><code><a title="synapsis.synapse.synapse_permission.SynapsePermission.find_by" href="#synapsis.synapse.synapse_permission.SynapsePermission.find_by">find_by</a></code></li>
 <li><code><a title="synapsis.synapse.synapse_permission.SynapsePermission.name" href="#synapsis.synapse.synapse_permission.SynapsePermission.name">name</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="synapsis.synapse.synapse_permission.SynapsePermissions" href="#synapsis.synapse.synapse_permission.SynapsePermissions">SynapsePermissions</a></code></h4>
+<ul class="two-column">
+<li><code><a title="synapsis.synapse.synapse_permission.SynapsePermissions.ADMIN" href="#synapsis.synapse.synapse_permission.SynapsePermissions.ADMIN">ADMIN</a></code></li>
+<li><code><a title="synapsis.synapse.synapse_permission.SynapsePermissions.ALL" href="#synapsis.synapse.synapse_permission.SynapsePermissions.ALL">ALL</a></code></li>
+<li><code><a title="synapsis.synapse.synapse_permission.SynapsePermissions.CAN_DOWNLOAD" href="#synapsis.synapse.synapse_permission.SynapsePermissions.CAN_DOWNLOAD">CAN_DOWNLOAD</a></code></li>
+<li><code><a title="synapsis.synapse.synapse_permission.SynapsePermissions.CAN_EDIT" href="#synapsis.synapse.synapse_permission.SynapsePermissions.CAN_EDIT">CAN_EDIT</a></code></li>
+<li><code><a title="synapsis.synapse.synapse_permission.SynapsePermissions.CAN_EDIT_AND_DELETE" href="#synapsis.synapse.synapse_permission.SynapsePermissions.CAN_EDIT_AND_DELETE">CAN_EDIT_AND_DELETE</a></code></li>
+<li><code><a title="synapsis.synapse.synapse_permission.SynapsePermissions.CAN_VIEW" href="#synapsis.synapse.synapse_permission.SynapsePermissions.CAN_VIEW">CAN_VIEW</a></code></li>
+<li><code><a title="synapsis.synapse.synapse_permission.SynapsePermissions.ENTITY_PERMISSIONS" href="#synapsis.synapse.synapse_permission.SynapsePermissions.ENTITY_PERMISSIONS">ENTITY_PERMISSIONS</a></code></li>
+<li><code><a title="synapsis.synapse.synapse_permission.SynapsePermissions.NO_PERMISSION" href="#synapsis.synapse.synapse_permission.SynapsePermissions.NO_PERMISSION">NO_PERMISSION</a></code></li>
+<li><code><a title="synapsis.synapse.synapse_permission.SynapsePermissions.TEAM_MANAGER" href="#synapsis.synapse.synapse_permission.SynapsePermissions.TEAM_MANAGER">TEAM_MANAGER</a></code></li>
+<li><code><a title="synapsis.synapse.synapse_permission.SynapsePermissions.TEAM_PERMISSIONS" href="#synapsis.synapse.synapse_permission.SynapsePermissions.TEAM_PERMISSIONS">TEAM_PERMISSIONS</a></code></li>
 </ul>
 </li>
 </ul>

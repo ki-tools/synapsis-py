@@ -1,61 +1,29 @@
 from __future__ import annotations
 import typing as t
 from ..synapse import Synapse, SynapseUtils, SynapsePermission, SynapseConcreteType
+from .utils import Utils
 from .synapsis_utils import SynapsisUtils
-from . import utils
+from .hooks import Hooks
 from dotchain import DotChain
-from .lazy_readonly_property import LazyReadOnlyAttribute
 import synapseclient
 import numbers
-from enum import Enum, auto
-
-
-class Contexts(Enum):
-    CHAIN = auto()
-    PERMISSIONS = auto()
-    CONCRETE_TYPES = auto()
-    SYNAPSE = auto()
-    SYNAPSE_UTILS = auto()
-    UTILS = auto()
 
 
 class Synapsis(object):
+    def __init__(self):
+        self._hooks: Hooks = Hooks()
+        self._synapse: Synapse = Synapse()
+        self._synapse_utils: SynapseUtils = SynapseUtils(self._synapse)
+        self._synapsis_utils: SynapsisUtils = SynapsisUtils(self._synapse)
 
-    def __lazy_factory__(self,
-                         context: Contexts) -> TSynapsis | SynapsePermission | SynapseConcreteType | Synapse | SynapseUtils | SynapsisUtils:
-        match context:
-            case Contexts.CHAIN:
-                return DotChain(data=self).With(self)
-            case Contexts.PERMISSIONS:
-                return SynapsePermission
-            case Contexts.CONCRETE_TYPES:
-                return SynapseConcreteType
-            case Contexts.SYNAPSE:
-                return Synapse()
-            case Contexts.SYNAPSE_UTILS:
-                return SynapseUtils(self.Synapse)
-            case Contexts.UTILS:
-                return SynapsisUtils(self.Synapse)
-
-    Chain: t.Final[TSynapsis] = \
-        LazyReadOnlyAttribute(__lazy_factory__, context=Contexts.CHAIN)
-
-    Permissions: t.Final[SynapsePermission] = \
-        LazyReadOnlyAttribute(__lazy_factory__, context=Contexts.PERMISSIONS, _singleton=True)
-
-    ConcreteTypes: t.Final[SynapseConcreteType] = \
-        LazyReadOnlyAttribute(__lazy_factory__, context=Contexts.CONCRETE_TYPES, _singleton=True)
-
-    Synapse: t.Final[Synapse] = \
-        LazyReadOnlyAttribute(__lazy_factory__, context=Contexts.SYNAPSE, _singleton=True)
-
-    SynapseUtils: t.Final[SynapseUtils] = \
-        LazyReadOnlyAttribute(__lazy_factory__, context=Contexts.SYNAPSE_UTILS, _singleton=True)
-
-    Utils: t.Final[SynapsisUtils] = \
-        LazyReadOnlyAttribute(__lazy_factory__, context=Contexts.UTILS, _singleton=True)
-
-    utils: t.Final[utils] = utils
+    Chain: TSynapsis = property(lambda self: DotChain(data=self).With(self))
+    Permissions: t.Type[SynapsePermission] = property(lambda self: SynapsePermission)
+    ConcreteTypes: t.Type[SynapseConcreteType] = property(lambda self: SynapseConcreteType)
+    Synapse: Synapse = property(lambda self: self._synapse)
+    SynapseUtils: SynapseUtils = property(lambda self: self._synapse_utils)
+    Utils: SynapsisUtils = property(lambda self: self._synapsis_utils)
+    utils: t.Type[Utils] = property(lambda self: Utils)
+    hooks: Hooks = property(lambda self: self._hooks)
 
     def configure(self, synapse_args: dict = {}, **login_args: dict) -> t.Self:
         self.Synapse.__configure__(synapse_args=synapse_args, **login_args)
@@ -65,7 +33,7 @@ class Synapsis(object):
         return self.Synapse.__logged_in__()
 
     def login(self) -> t.Self:
-        self.Synapse.__login__()
+        self.Synapse.__login__(hooks=self.hooks)
         return self
 
     def logout(self, *args, **kwargs) -> t.Self:

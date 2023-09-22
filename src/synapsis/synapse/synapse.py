@@ -42,7 +42,7 @@ class Synapse(synapseclient.Synapse):
         login_args['authToken'] = login_args.get('authToken', None) or os.environ.get('SYNAPSE_AUTH_TOKEN', None)
         return login_args
 
-    def __login__(self):
+    def __login__(self, hooks=None):
         """Login to Synapse.
 
         :return: None
@@ -53,6 +53,8 @@ class Synapse(synapseclient.Synapse):
         super().__init__(**init_args)
         try:
             self.login(**login_args)
+            if hooks:
+                hooks.__call_hook__(hooks.AFTER_LOGIN)
         except SynapseError as ex:
             raise LoginError(ex)
         self.__synapse_init_args__ = {}

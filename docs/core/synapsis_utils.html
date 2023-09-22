@@ -35,7 +35,7 @@ import unicodedata
 import hashlib
 import numbers
 import re
-from . import utils
+from . import Utils
 from .exceptions import SynapsisError
 from ..synapse import Synapse, SynapsePermission
 from ..synapse.synapse_permission import PermissionCode, AccessTypes
@@ -230,9 +230,9 @@ class SynapsisUtils(object):
             file_handles = source
 
         if data_file_handle_id is None:
-            return utils.find(file_handles, lambda f: f[&#39;status&#39;] == &#39;AVAILABLE&#39; and not f[&#39;isPreview&#39;])
+            return Utils.find(file_handles, lambda f: f[&#39;status&#39;] == &#39;AVAILABLE&#39; and not f[&#39;isPreview&#39;])
         else:
-            return utils.find(file_handles, lambda f: str(f[&#39;id&#39;]) == str(data_file_handle_id))
+            return Utils.find(file_handles, lambda f: str(f[&#39;id&#39;]) == str(data_file_handle_id))
 
     def get_filehandle(self, file: synapseclient.File | str) -&gt; dict | None:
         &#34;&#34;&#34;
@@ -242,7 +242,7 @@ class SynapsisUtils(object):
         :return: dict
         &#34;&#34;&#34;
         res = self.__synapse__.restGET(&#39;/entity/{0}/filehandles&#39;.format(self.id_of(file)))
-        filehandle = utils.find(res[&#39;list&#39;], lambda f: f[&#39;status&#39;] == &#39;AVAILABLE&#39; and not f[&#39;isPreview&#39;])
+        filehandle = Utils.find(res[&#39;list&#39;], lambda f: f[&#39;status&#39;] == &#39;AVAILABLE&#39; and not f[&#39;isPreview&#39;])
         return filehandle
 
     def get_filehandles(self,
@@ -355,7 +355,7 @@ class SynapsisUtils(object):
         permission = self.__to_permission__(permission)
 
         team_acl = self.__synapse__.restGET(&#39;/team/{0}/acl&#39;.format(team_id))
-        user_access = utils.find(team_acl[&#39;resourceAccess&#39;], lambda a: str(a.get(&#39;principalId&#39;)) == str(user_id))
+        user_access = Utils.find(team_acl[&#39;resourceAccess&#39;], lambda a: str(a.get(&#39;principalId&#39;)) == str(user_id))
         current_access_types = user_access[&#39;accessType&#39;] if user_access else None
 
         if permission.equals(current_access_types):
@@ -655,9 +655,9 @@ class SynapsisUtils(object):
             file_handles = source
 
         if data_file_handle_id is None:
-            return utils.find(file_handles, lambda f: f[&#39;status&#39;] == &#39;AVAILABLE&#39; and not f[&#39;isPreview&#39;])
+            return Utils.find(file_handles, lambda f: f[&#39;status&#39;] == &#39;AVAILABLE&#39; and not f[&#39;isPreview&#39;])
         else:
-            return utils.find(file_handles, lambda f: str(f[&#39;id&#39;]) == str(data_file_handle_id))
+            return Utils.find(file_handles, lambda f: str(f[&#39;id&#39;]) == str(data_file_handle_id))
 
     def get_filehandle(self, file: synapseclient.File | str) -&gt; dict | None:
         &#34;&#34;&#34;
@@ -667,7 +667,7 @@ class SynapsisUtils(object):
         :return: dict
         &#34;&#34;&#34;
         res = self.__synapse__.restGET(&#39;/entity/{0}/filehandles&#39;.format(self.id_of(file)))
-        filehandle = utils.find(res[&#39;list&#39;], lambda f: f[&#39;status&#39;] == &#39;AVAILABLE&#39; and not f[&#39;isPreview&#39;])
+        filehandle = Utils.find(res[&#39;list&#39;], lambda f: f[&#39;status&#39;] == &#39;AVAILABLE&#39; and not f[&#39;isPreview&#39;])
         return filehandle
 
     def get_filehandles(self,
@@ -780,7 +780,7 @@ class SynapsisUtils(object):
         permission = self.__to_permission__(permission)
 
         team_acl = self.__synapse__.restGET(&#39;/team/{0}/acl&#39;.format(team_id))
-        user_access = utils.find(team_acl[&#39;resourceAccess&#39;], lambda a: str(a.get(&#39;principalId&#39;)) == str(user_id))
+        user_access = Utils.find(team_acl[&#39;resourceAccess&#39;], lambda a: str(a.get(&#39;principalId&#39;)) == str(user_id))
         current_access_types = user_access[&#39;accessType&#39;] if user_access else None
 
         if permission.equals(current_access_types):
@@ -970,9 +970,9 @@ class SynapsisUtils(object):
         file_handles = source
 
     if data_file_handle_id is None:
-        return utils.find(file_handles, lambda f: f[&#39;status&#39;] == &#39;AVAILABLE&#39; and not f[&#39;isPreview&#39;])
+        return Utils.find(file_handles, lambda f: f[&#39;status&#39;] == &#39;AVAILABLE&#39; and not f[&#39;isPreview&#39;])
     else:
-        return utils.find(file_handles, lambda f: str(f[&#39;id&#39;]) == str(data_file_handle_id))</code></pre>
+        return Utils.find(file_handles, lambda f: str(f[&#39;id&#39;]) == str(data_file_handle_id))</code></pre>
 </details>
 </dd>
 <dt id="synapsis.core.synapsis_utils.SynapsisUtils.find_entity"><code class="name flex">
@@ -1083,7 +1083,7 @@ class SynapsisUtils(object):
     :return: dict
     &#34;&#34;&#34;
     res = self.__synapse__.restGET(&#39;/entity/{0}/filehandles&#39;.format(self.id_of(file)))
-    filehandle = utils.find(res[&#39;list&#39;], lambda f: f[&#39;status&#39;] == &#39;AVAILABLE&#39; and not f[&#39;isPreview&#39;])
+    filehandle = Utils.find(res[&#39;list&#39;], lambda f: f[&#39;status&#39;] == &#39;AVAILABLE&#39; and not f[&#39;isPreview&#39;])
     return filehandle</code></pre>
 </details>
 </dd>
@@ -1455,7 +1455,7 @@ class SynapsisUtils(object):
     permission = self.__to_permission__(permission)
 
     team_acl = self.__synapse__.restGET(&#39;/team/{0}/acl&#39;.format(team_id))
-    user_access = utils.find(team_acl[&#39;resourceAccess&#39;], lambda a: str(a.get(&#39;principalId&#39;)) == str(user_id))
+    user_access = Utils.find(team_acl[&#39;resourceAccess&#39;], lambda a: str(a.get(&#39;principalId&#39;)) == str(user_id))
     current_access_types = user_access[&#39;accessType&#39;] if user_access else None
 
     if permission.equals(current_access_types):

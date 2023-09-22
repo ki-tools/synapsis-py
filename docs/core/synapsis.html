@@ -29,61 +29,29 @@
 <pre><code class="python">from __future__ import annotations
 import typing as t
 from ..synapse import Synapse, SynapseUtils, SynapsePermission, SynapseConcreteType
+from .utils import Utils
 from .synapsis_utils import SynapsisUtils
-from . import utils
+from .hooks import Hooks
 from dotchain import DotChain
-from .lazy_readonly_property import LazyReadOnlyAttribute
 import synapseclient
 import numbers
-from enum import Enum, auto
-
-
-class Contexts(Enum):
-    CHAIN = auto()
-    PERMISSIONS = auto()
-    CONCRETE_TYPES = auto()
-    SYNAPSE = auto()
-    SYNAPSE_UTILS = auto()
-    UTILS = auto()
 
 
 class Synapsis(object):
+    def __init__(self):
+        self._hooks: Hooks = Hooks()
+        self._synapse: Synapse = Synapse()
+        self._synapse_utils: SynapseUtils = SynapseUtils(self._synapse)
+        self._synapsis_utils: SynapsisUtils = SynapsisUtils(self._synapse)
 
-    def __lazy_factory__(self,
-                         context: Contexts) -&gt; TSynapsis | SynapsePermission | SynapseConcreteType | Synapse | SynapseUtils | SynapsisUtils:
-        match context:
-            case Contexts.CHAIN:
-                return DotChain(data=self).With(self)
-            case Contexts.PERMISSIONS:
-                return SynapsePermission
-            case Contexts.CONCRETE_TYPES:
-                return SynapseConcreteType
-            case Contexts.SYNAPSE:
-                return Synapse()
-            case Contexts.SYNAPSE_UTILS:
-                return SynapseUtils(self.Synapse)
-            case Contexts.UTILS:
-                return SynapsisUtils(self.Synapse)
-
-    Chain: t.Final[TSynapsis] = \
-        LazyReadOnlyAttribute(__lazy_factory__, context=Contexts.CHAIN)
-
-    Permissions: t.Final[SynapsePermission] = \
-        LazyReadOnlyAttribute(__lazy_factory__, context=Contexts.PERMISSIONS, _singleton=True)
-
-    ConcreteTypes: t.Final[SynapseConcreteType] = \
-        LazyReadOnlyAttribute(__lazy_factory__, context=Contexts.CONCRETE_TYPES, _singleton=True)
-
-    Synapse: t.Final[Synapse] = \
-        LazyReadOnlyAttribute(__lazy_factory__, context=Contexts.SYNAPSE, _singleton=True)
-
-    SynapseUtils: t.Final[SynapseUtils] = \
-        LazyReadOnlyAttribute(__lazy_factory__, context=Contexts.SYNAPSE_UTILS, _singleton=True)
-
-    Utils: t.Final[SynapsisUtils] = \
-        LazyReadOnlyAttribute(__lazy_factory__, context=Contexts.UTILS, _singleton=True)
-
-    utils: t.Final[utils] = utils
+    Chain: TSynapsis = property(lambda self: DotChain(data=self).With(self))
+    Permissions: t.Type[SynapsePermission] = property(lambda self: SynapsePermission)
+    ConcreteTypes: t.Type[SynapseConcreteType] = property(lambda self: SynapseConcreteType)
+    Synapse: Synapse = property(lambda self: self._synapse)
+    SynapseUtils: SynapseUtils = property(lambda self: self._synapse_utils)
+    Utils: SynapsisUtils = property(lambda self: self._synapsis_utils)
+    utils: t.Type[Utils] = property(lambda self: Utils)
+    hooks: Hooks = property(lambda self: self._hooks)
 
     def configure(self, synapse_args: dict = {}, **login_args: dict) -&gt; t.Self:
         self.Synapse.__configure__(synapse_args=synapse_args, **login_args)
@@ -93,7 +61,7 @@ class Synapsis(object):
         return self.Synapse.__logged_in__()
 
     def login(self) -&gt; t.Self:
-        self.Synapse.__login__()
+        self.Synapse.__login__(hooks=self.hooks)
         return self
 
     def logout(self, *args, **kwargs) -&gt; t.Self:
@@ -137,56 +105,6 @@ TSynapsis = t.TypeVar(&#39;TSynapsis&#39;, Synapsis, Synapse)</code></pre>
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="synapsis.core.synapsis.Contexts"><code class="flex name class">
-<span>class <span class="ident">Contexts</span></span>
-<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>An enumeration.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class Contexts(Enum):
-    CHAIN = auto()
-    PERMISSIONS = auto()
-    CONCRETE_TYPES = auto()
-    SYNAPSE = auto()
-    SYNAPSE_UTILS = auto()
-    UTILS = auto()</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li>enum.Enum</li>
-</ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="synapsis.core.synapsis.Contexts.CHAIN"><code class="name">var <span class="ident">CHAIN</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="synapsis.core.synapsis.Contexts.CONCRETE_TYPES"><code class="name">var <span class="ident">CONCRETE_TYPES</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="synapsis.core.synapsis.Contexts.PERMISSIONS"><code class="name">var <span class="ident">PERMISSIONS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="synapsis.core.synapsis.Contexts.SYNAPSE"><code class="name">var <span class="ident">SYNAPSE</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="synapsis.core.synapsis.Contexts.SYNAPSE_UTILS"><code class="name">var <span class="ident">SYNAPSE_UTILS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="synapsis.core.synapsis.Contexts.UTILS"><code class="name">var <span class="ident">UTILS</span></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
-</dd>
 <dt id="synapsis.core.synapsis.Synapsis"><code class="flex name class">
 <span>class <span class="ident">Synapsis</span></span>
 </code></dt>
@@ -197,42 +115,20 @@ TSynapsis = t.TypeVar(&#39;TSynapsis&#39;, Synapsis, Synapse)</code></pre>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Synapsis(object):
+    def __init__(self):
+        self._hooks: Hooks = Hooks()
+        self._synapse: Synapse = Synapse()
+        self._synapse_utils: SynapseUtils = SynapseUtils(self._synapse)
+        self._synapsis_utils: SynapsisUtils = SynapsisUtils(self._synapse)
 
-    def __lazy_factory__(self,
-                         context: Contexts) -&gt; TSynapsis | SynapsePermission | SynapseConcreteType | Synapse | SynapseUtils | SynapsisUtils:
-        match context:
-            case Contexts.CHAIN:
-                return DotChain(data=self).With(self)
-            case Contexts.PERMISSIONS:
-                return SynapsePermission
-            case Contexts.CONCRETE_TYPES:
-                return SynapseConcreteType
-            case Contexts.SYNAPSE:
-                return Synapse()
-            case Contexts.SYNAPSE_UTILS:
-                return SynapseUtils(self.Synapse)
-            case Contexts.UTILS:
-                return SynapsisUtils(self.Synapse)
-
-    Chain: t.Final[TSynapsis] = \
-        LazyReadOnlyAttribute(__lazy_factory__, context=Contexts.CHAIN)
-
-    Permissions: t.Final[SynapsePermission] = \
-        LazyReadOnlyAttribute(__lazy_factory__, context=Contexts.PERMISSIONS, _singleton=True)
-
-    ConcreteTypes: t.Final[SynapseConcreteType] = \
-        LazyReadOnlyAttribute(__lazy_factory__, context=Contexts.CONCRETE_TYPES, _singleton=True)
-
-    Synapse: t.Final[Synapse] = \
-        LazyReadOnlyAttribute(__lazy_factory__, context=Contexts.SYNAPSE, _singleton=True)
-
-    SynapseUtils: t.Final[SynapseUtils] = \
-        LazyReadOnlyAttribute(__lazy_factory__, context=Contexts.SYNAPSE_UTILS, _singleton=True)
-
-    Utils: t.Final[SynapsisUtils] = \
-        LazyReadOnlyAttribute(__lazy_factory__, context=Contexts.UTILS, _singleton=True)
-
-    utils: t.Final[utils] = utils
+    Chain: TSynapsis = property(lambda self: DotChain(data=self).With(self))
+    Permissions: t.Type[SynapsePermission] = property(lambda self: SynapsePermission)
+    ConcreteTypes: t.Type[SynapseConcreteType] = property(lambda self: SynapseConcreteType)
+    Synapse: Synapse = property(lambda self: self._synapse)
+    SynapseUtils: SynapseUtils = property(lambda self: self._synapse_utils)
+    Utils: SynapsisUtils = property(lambda self: self._synapsis_utils)
+    utils: t.Type[Utils] = property(lambda self: Utils)
+    hooks: Hooks = property(lambda self: self._hooks)
 
     def configure(self, synapse_args: dict = {}, **login_args: dict) -&gt; t.Self:
         self.Synapse.__configure__(synapse_args=synapse_args, **login_args)
@@ -242,7 +138,7 @@ TSynapsis = t.TypeVar(&#39;TSynapsis&#39;, Synapsis, Synapse)</code></pre>
         return self.Synapse.__logged_in__()
 
     def login(self) -&gt; t.Self:
-        self.Synapse.__login__()
+        self.Synapse.__login__(hooks=self.hooks)
         return self
 
     def logout(self, *args, **kwargs) -&gt; t.Self:
@@ -273,35 +169,87 @@ TSynapsis = t.TypeVar(&#39;TSynapsis&#39;, Synapsis, Synapse)</code></pre>
             return getattr(self.Synapse, item)
         raise AttributeError(&#39;Synapsis cannot find attribute: {0}&#39;.format(item))</code></pre>
 </details>
-<h3>Class variables</h3>
+<h3>Instance variables</h3>
 <dl>
-<dt id="synapsis.core.synapsis.Synapsis.Chain"><code class="name">var <span class="ident">Chain</span> : DotChain</code></dt>
+<dt id="synapsis.core.synapsis.Synapsis.Chain"><code class="name">var <span class="ident">Chain</span> : ~TSynapsis</code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">Chain: TSynapsis = property(lambda self: DotChain(data=self).With(self))</code></pre>
+</details>
 </dd>
-<dt id="synapsis.core.synapsis.Synapsis.ConcreteTypes"><code class="name">var <span class="ident">ConcreteTypes</span> : t.Final[SynapseConcreteType]</code></dt>
+<dt id="synapsis.core.synapsis.Synapsis.ConcreteTypes"><code class="name">var <span class="ident">ConcreteTypes</span> : Type[<a title="synapsis.synapse.synapse_concrete_type.SynapseConcreteType" href="../synapse/synapse_concrete_type.html#synapsis.synapse.synapse_concrete_type.SynapseConcreteType">SynapseConcreteType</a>]</code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">ConcreteTypes: t.Type[SynapseConcreteType] = property(lambda self: SynapseConcreteType)</code></pre>
+</details>
 </dd>
-<dt id="synapsis.core.synapsis.Synapsis.Permissions"><code class="name">var <span class="ident">Permissions</span> : t.Final[SynapsePermission]</code></dt>
+<dt id="synapsis.core.synapsis.Synapsis.Permissions"><code class="name">var <span class="ident">Permissions</span> : Type[<a title="synapsis.synapse.synapse_permission.SynapsePermission" href="../synapse/synapse_permission.html#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a>]</code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">Permissions: t.Type[SynapsePermission] = property(lambda self: SynapsePermission)</code></pre>
+</details>
 </dd>
-<dt id="synapsis.core.synapsis.Synapsis.Synapse"><code class="name">var <span class="ident">Synapse</span> : t.Final[Synapse]</code></dt>
+<dt id="synapsis.core.synapsis.Synapsis.Synapse"><code class="name">var <span class="ident">Synapse</span> : <a title="synapsis.synapse.synapse.Synapse" href="../synapse/synapse.html#synapsis.synapse.synapse.Synapse">Synapse</a></code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">Synapse: Synapse = property(lambda self: self._synapse)</code></pre>
+</details>
 </dd>
-<dt id="synapsis.core.synapsis.Synapsis.SynapseUtils"><code class="name">var <span class="ident">SynapseUtils</span> : t.Final[SynapseUtils]</code></dt>
+<dt id="synapsis.core.synapsis.Synapsis.SynapseUtils"><code class="name">var <span class="ident">SynapseUtils</span> : <a title="synapsis.synapse.synapse_utils.SynapseUtils" href="../synapse/synapse_utils.html#synapsis.synapse.synapse_utils.SynapseUtils">SynapseUtils</a></code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">SynapseUtils: SynapseUtils = property(lambda self: self._synapse_utils)</code></pre>
+</details>
 </dd>
-<dt id="synapsis.core.synapsis.Synapsis.Utils"><code class="name">var <span class="ident">Utils</span> : t.Final[SynapsisUtils]</code></dt>
+<dt id="synapsis.core.synapsis.Synapsis.Utils"><code class="name">var <span class="ident">Utils</span> : <a title="synapsis.core.synapsis_utils.SynapsisUtils" href="synapsis_utils.html#synapsis.core.synapsis_utils.SynapsisUtils">SynapsisUtils</a></code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">Utils: SynapsisUtils = property(lambda self: self._synapsis_utils)</code></pre>
+</details>
 </dd>
-<dt id="synapsis.core.synapsis.Synapsis.utils"><code class="name">var <span class="ident">utils</span> : t.Final[utils]</code></dt>
+<dt id="synapsis.core.synapsis.Synapsis.hooks"><code class="name">var <span class="ident">hooks</span> : <a title="synapsis.core.hooks.Hooks" href="hooks.html#synapsis.core.hooks.Hooks">Hooks</a></code></dt>
 <dd>
 <div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">hooks: Hooks = property(lambda self: self._hooks)</code></pre>
+</details>
+</dd>
+<dt id="synapsis.core.synapsis.Synapsis.utils"><code class="name">var <span class="ident">utils</span> : Type[<a title="synapsis.core.utils.Utils" href="utils.html#synapsis.core.utils.Utils">Utils</a>]</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">utils: t.Type[Utils] = property(lambda self: Utils)</code></pre>
+</details>
 </dd>
 </dl>
 <h3>Methods</h3>
@@ -387,7 +335,7 @@ TSynapsis = t.TypeVar(&#39;TSynapsis&#39;, Synapsis, Synapse)</code></pre>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def login(self) -&gt; t.Self:
-    self.Synapse.__login__()
+    self.Synapse.__login__(hooks=self.hooks)
     return self</code></pre>
 </details>
 </dd>
@@ -424,17 +372,6 @@ TSynapsis = t.TypeVar(&#39;TSynapsis&#39;, Synapsis, Synapse)</code></pre>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="synapsis.core.synapsis.Contexts" href="#synapsis.core.synapsis.Contexts">Contexts</a></code></h4>
-<ul class="two-column">
-<li><code><a title="synapsis.core.synapsis.Contexts.CHAIN" href="#synapsis.core.synapsis.Contexts.CHAIN">CHAIN</a></code></li>
-<li><code><a title="synapsis.core.synapsis.Contexts.CONCRETE_TYPES" href="#synapsis.core.synapsis.Contexts.CONCRETE_TYPES">CONCRETE_TYPES</a></code></li>
-<li><code><a title="synapsis.core.synapsis.Contexts.PERMISSIONS" href="#synapsis.core.synapsis.Contexts.PERMISSIONS">PERMISSIONS</a></code></li>
-<li><code><a title="synapsis.core.synapsis.Contexts.SYNAPSE" href="#synapsis.core.synapsis.Contexts.SYNAPSE">SYNAPSE</a></code></li>
-<li><code><a title="synapsis.core.synapsis.Contexts.SYNAPSE_UTILS" href="#synapsis.core.synapsis.Contexts.SYNAPSE_UTILS">SYNAPSE_UTILS</a></code></li>
-<li><code><a title="synapsis.core.synapsis.Contexts.UTILS" href="#synapsis.core.synapsis.Contexts.UTILS">UTILS</a></code></li>
-</ul>
-</li>
-<li>
 <h4><code><a title="synapsis.core.synapsis.Synapsis" href="#synapsis.core.synapsis.Synapsis">Synapsis</a></code></h4>
 <ul class="two-column">
 <li><code><a title="synapsis.core.synapsis.Synapsis.Chain" href="#synapsis.core.synapsis.Synapsis.Chain">Chain</a></code></li>
@@ -444,6 +381,7 @@ TSynapsis = t.TypeVar(&#39;TSynapsis&#39;, Synapsis, Synapse)</code></pre>
 <li><code><a title="synapsis.core.synapsis.Synapsis.SynapseUtils" href="#synapsis.core.synapsis.Synapsis.SynapseUtils">SynapseUtils</a></code></li>
 <li><code><a title="synapsis.core.synapsis.Synapsis.Utils" href="#synapsis.core.synapsis.Synapsis.Utils">Utils</a></code></li>
 <li><code><a title="synapsis.core.synapsis.Synapsis.configure" href="#synapsis.core.synapsis.Synapsis.configure">configure</a></code></li>
+<li><code><a title="synapsis.core.synapsis.Synapsis.hooks" href="#synapsis.core.synapsis.Synapsis.hooks">hooks</a></code></li>
 <li><code><a title="synapsis.core.synapsis.Synapsis.id_of" href="#synapsis.core.synapsis.Synapsis.id_of">id_of</a></code></li>
 <li><code><a title="synapsis.core.synapsis.Synapsis.is_synapse_id" href="#synapsis.core.synapsis.Synapsis.is_synapse_id">is_synapse_id</a></code></li>
 <li><code><a title="synapsis.core.synapsis.Synapsis.logged_in" href="#synapsis.core.synapsis.Synapsis.logged_in">logged_in</a></code></li>
