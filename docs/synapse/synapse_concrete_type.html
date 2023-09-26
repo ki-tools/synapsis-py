@@ -193,7 +193,7 @@ class SynapseConcreteType(object, metaclass=SynapseConcreteTypes):
     name: str
 
     def __init__(self, code: str):
-        self.code = code
+        self.code = type(self).__extract_code___(code)
         self.name = code.split(&#39;.&#39;)[-1]
         if self.name.endswith(&#39;Entity&#39;):
             self.name = self.name.removesuffix(&#39;Entity&#39;)
@@ -214,28 +214,36 @@ class SynapseConcreteType(object, metaclass=SynapseConcreteTypes):
     def is_unknown(self):
         return self.code == type(self).UNKNOWN.code
 
+    def is_a(self, *concrete_types: str | list[str] | SynapseConcreteType | list[SynapseConcreteType]):
+        &#34;&#34;&#34;
+        Gets if &#39;self&#39; is one of &#39;concrete_types&#39;.
+
+        :param concrete_types: The SynapseConcreteTypes to check against &#39;obj&#39;.
+        :return: True if &#39;obj&#39; is one of the &#39;synapse_concrete_types&#39;.
+        &#34;&#34;&#34;
+        return type(self).is_concrete_type(self, *concrete_types)
+
     @classmethod
     def get(cls, obj: str | t.Mapping | SynapseConcreteType) -&gt; SynapseConcreteType:
-        if isinstance(obj, str):
-            code = obj
-        elif isinstance(obj, SynapseConcreteType):
-            code = obj.code
-        else:
-            code = syn_utils.concrete_type_of(obj)
-
+        code = cls.__extract_code___(obj)
         return Utils.find(cls.ALL, lambda c: c.code == code, cls.UNKNOWN)
 
     @classmethod
-    def is_a(cls, obj: str | t.Mapping | SynapseConcreteType, synapse_concrete_type: SynapseConcreteType):
+    def is_concrete_type(cls, obj: str | t.Mapping | SynapseConcreteType,
+                         *concrete_types: str | list[str] | SynapseConcreteType | list[SynapseConcreteType]):
         &#34;&#34;&#34;
-        Gets if &#39;obj&#39; is a &#39;synapse_concrete_type&#39;.
+        Gets if &#39;obj&#39; is one of &#39;concrete_types&#39;.
 
         :param obj: The object to check.
-        :param synapse_concrete_type: The SynapseConcreteType to check against &#39;obj&#39;.
-        :return: True if &#39;obj&#39; is a &#39;synapse_concrete_type&#39;.
+        :param concrete_types: The SynapseConcreteTypes to check against &#39;obj&#39;.
+        :return: True if &#39;obj&#39; is one of the &#39;synapse_concrete_types&#39;.
         &#34;&#34;&#34;
         concrete_type_for_obj = cls.get(obj)
-        return concrete_type_for_obj is not None and concrete_type_for_obj.code == synapse_concrete_type.code
+        for concrete_type in concrete_types:
+            concrete_type = cls.get(concrete_type)
+            if concrete_type_for_obj.code == concrete_type.code:
+                return True
+        return False
 
     def __is_generic__(self, item: str) -&gt; bool:
         item = item.replace(&#39;is_&#39;, &#39;&#39;).upper()
@@ -248,7 +256,42 @@ class SynapseConcreteType(object, metaclass=SynapseConcreteTypes):
         if item.lower().startswith(&#39;is_&#39;):
             return self.__is_generic__(item)
         else:
-            return object.__getattribute__(self, item)</code></pre>
+            return object.__getattribute__(self, item)
+
+    @classmethod
+    def __extract_code___(cls, obj):
+        code = None
+        if isinstance(obj, str):
+            code = obj.strip()
+            # Handle EntityTypes (https://rest-docs.synapse.org/rest/org/sagebionetworks/repo/model/EntityType.html_
+            if not (code == cls._UNKNOWN_CODE_ or code.startswith(&#39;org.sagebionetworks.repo.model&#39;)):
+                match code:
+                    case &#39;project&#39;:
+                        code = ct.PROJECT_ENTITY
+                    case &#39;folder&#39;:
+                        code = ct.FOLDER_ENTITY
+                    case &#39;file&#39;:
+                        code = ct.FILE_ENTITY
+                    case &#39;table&#39;:
+                        code = ct.TABLE_ENTITY
+                    case &#39;link&#39;:
+                        code = ct.LINK_ENTITY
+                    case _:
+                        code = Utils.find(cls.ALL, lambda c: c.name.lower() == code.lower(), cls.UNKNOWN).code
+        elif isinstance(obj, SynapseConcreteType):
+            code = obj.code
+        else:
+            if isinstance(obj, dict):
+                if &#39;entity&#39; in obj:
+                    code = cls.__extract_code___(obj.get(&#39;entity&#39;))
+                elif &#39;entityType&#39; in obj:
+                    code = cls.__extract_code___(obj.get(&#39;entityType&#39;))
+            if code is None:
+                try:
+                    code = syn_utils.concrete_type_of(obj)
+                except ValueError:
+                    code = cls._UNKNOWN_CODE_
+        return code</code></pre>
 </details>
 </section>
 <section>
@@ -275,7 +318,7 @@ class SynapseConcreteType(object, metaclass=SynapseConcreteTypes):
     name: str
 
     def __init__(self, code: str):
-        self.code = code
+        self.code = type(self).__extract_code___(code)
         self.name = code.split(&#39;.&#39;)[-1]
         if self.name.endswith(&#39;Entity&#39;):
             self.name = self.name.removesuffix(&#39;Entity&#39;)
@@ -296,28 +339,36 @@ class SynapseConcreteType(object, metaclass=SynapseConcreteTypes):
     def is_unknown(self):
         return self.code == type(self).UNKNOWN.code
 
+    def is_a(self, *concrete_types: str | list[str] | SynapseConcreteType | list[SynapseConcreteType]):
+        &#34;&#34;&#34;
+        Gets if &#39;self&#39; is one of &#39;concrete_types&#39;.
+
+        :param concrete_types: The SynapseConcreteTypes to check against &#39;obj&#39;.
+        :return: True if &#39;obj&#39; is one of the &#39;synapse_concrete_types&#39;.
+        &#34;&#34;&#34;
+        return type(self).is_concrete_type(self, *concrete_types)
+
     @classmethod
     def get(cls, obj: str | t.Mapping | SynapseConcreteType) -&gt; SynapseConcreteType:
-        if isinstance(obj, str):
-            code = obj
-        elif isinstance(obj, SynapseConcreteType):
-            code = obj.code
-        else:
-            code = syn_utils.concrete_type_of(obj)
-
+        code = cls.__extract_code___(obj)
         return Utils.find(cls.ALL, lambda c: c.code == code, cls.UNKNOWN)
 
     @classmethod
-    def is_a(cls, obj: str | t.Mapping | SynapseConcreteType, synapse_concrete_type: SynapseConcreteType):
+    def is_concrete_type(cls, obj: str | t.Mapping | SynapseConcreteType,
+                         *concrete_types: str | list[str] | SynapseConcreteType | list[SynapseConcreteType]):
         &#34;&#34;&#34;
-        Gets if &#39;obj&#39; is a &#39;synapse_concrete_type&#39;.
+        Gets if &#39;obj&#39; is one of &#39;concrete_types&#39;.
 
         :param obj: The object to check.
-        :param synapse_concrete_type: The SynapseConcreteType to check against &#39;obj&#39;.
-        :return: True if &#39;obj&#39; is a &#39;synapse_concrete_type&#39;.
+        :param concrete_types: The SynapseConcreteTypes to check against &#39;obj&#39;.
+        :return: True if &#39;obj&#39; is one of the &#39;synapse_concrete_types&#39;.
         &#34;&#34;&#34;
         concrete_type_for_obj = cls.get(obj)
-        return concrete_type_for_obj is not None and concrete_type_for_obj.code == synapse_concrete_type.code
+        for concrete_type in concrete_types:
+            concrete_type = cls.get(concrete_type)
+            if concrete_type_for_obj.code == concrete_type.code:
+                return True
+        return False
 
     def __is_generic__(self, item: str) -&gt; bool:
         item = item.replace(&#39;is_&#39;, &#39;&#39;).upper()
@@ -330,7 +381,42 @@ class SynapseConcreteType(object, metaclass=SynapseConcreteTypes):
         if item.lower().startswith(&#39;is_&#39;):
             return self.__is_generic__(item)
         else:
-            return object.__getattribute__(self, item)</code></pre>
+            return object.__getattribute__(self, item)
+
+    @classmethod
+    def __extract_code___(cls, obj):
+        code = None
+        if isinstance(obj, str):
+            code = obj.strip()
+            # Handle EntityTypes (https://rest-docs.synapse.org/rest/org/sagebionetworks/repo/model/EntityType.html_
+            if not (code == cls._UNKNOWN_CODE_ or code.startswith(&#39;org.sagebionetworks.repo.model&#39;)):
+                match code:
+                    case &#39;project&#39;:
+                        code = ct.PROJECT_ENTITY
+                    case &#39;folder&#39;:
+                        code = ct.FOLDER_ENTITY
+                    case &#39;file&#39;:
+                        code = ct.FILE_ENTITY
+                    case &#39;table&#39;:
+                        code = ct.TABLE_ENTITY
+                    case &#39;link&#39;:
+                        code = ct.LINK_ENTITY
+                    case _:
+                        code = Utils.find(cls.ALL, lambda c: c.name.lower() == code.lower(), cls.UNKNOWN).code
+        elif isinstance(obj, SynapseConcreteType):
+            code = obj.code
+        else:
+            if isinstance(obj, dict):
+                if &#39;entity&#39; in obj:
+                    code = cls.__extract_code___(obj.get(&#39;entity&#39;))
+                elif &#39;entityType&#39; in obj:
+                    code = cls.__extract_code___(obj.get(&#39;entityType&#39;))
+            if code is None:
+                try:
+                    code = syn_utils.concrete_type_of(obj)
+                except ValueError:
+                    code = cls._UNKNOWN_CODE_
+        return code</code></pre>
 </details>
 <h3>Class variables</h3>
 <dl>
@@ -356,39 +442,38 @@ class SynapseConcreteType(object, metaclass=SynapseConcreteTypes):
 </summary>
 <pre><code class="python">@classmethod
 def get(cls, obj: str | t.Mapping | SynapseConcreteType) -&gt; SynapseConcreteType:
-    if isinstance(obj, str):
-        code = obj
-    elif isinstance(obj, SynapseConcreteType):
-        code = obj.code
-    else:
-        code = syn_utils.concrete_type_of(obj)
-
+    code = cls.__extract_code___(obj)
     return Utils.find(cls.ALL, lambda c: c.code == code, cls.UNKNOWN)</code></pre>
 </details>
 </dd>
-<dt id="synapsis.synapse.synapse_concrete_type.SynapseConcreteType.is_a"><code class="name flex">
-<span>def <span class="ident">is_a</span></span>(<span>obj: str | t.Mapping | <a title="synapsis.synapse.synapse_concrete_type.SynapseConcreteType" href="#synapsis.synapse.synapse_concrete_type.SynapseConcreteType">SynapseConcreteType</a>, synapse_concrete_type: <a title="synapsis.synapse.synapse_concrete_type.SynapseConcreteType" href="#synapsis.synapse.synapse_concrete_type.SynapseConcreteType">SynapseConcreteType</a>)</span>
+<dt id="synapsis.synapse.synapse_concrete_type.SynapseConcreteType.is_concrete_type"><code class="name flex">
+<span>def <span class="ident">is_concrete_type</span></span>(<span>obj: str | t.Mapping | <a title="synapsis.synapse.synapse_concrete_type.SynapseConcreteType" href="#synapsis.synapse.synapse_concrete_type.SynapseConcreteType">SynapseConcreteType</a>, *concrete_types: str | list[str] | <a title="synapsis.synapse.synapse_concrete_type.SynapseConcreteType" href="#synapsis.synapse.synapse_concrete_type.SynapseConcreteType">SynapseConcreteType</a> | list[<a title="synapsis.synapse.synapse_concrete_type.SynapseConcreteType" href="#synapsis.synapse.synapse_concrete_type.SynapseConcreteType">SynapseConcreteType</a>])</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Gets if 'obj' is a 'synapse_concrete_type'.</p>
+<div class="desc"><p>Gets if 'obj' is one of 'concrete_types'.</p>
 <p>:param obj: The object to check.
-:param synapse_concrete_type: The SynapseConcreteType to check against 'obj'.
-:return: True if 'obj' is a 'synapse_concrete_type'.</p></div>
+:param concrete_types: The SynapseConcreteTypes to check against 'obj'.
+:return: True if 'obj' is one of the 'synapse_concrete_types'.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def is_a(cls, obj: str | t.Mapping | SynapseConcreteType, synapse_concrete_type: SynapseConcreteType):
+def is_concrete_type(cls, obj: str | t.Mapping | SynapseConcreteType,
+                     *concrete_types: str | list[str] | SynapseConcreteType | list[SynapseConcreteType]):
     &#34;&#34;&#34;
-    Gets if &#39;obj&#39; is a &#39;synapse_concrete_type&#39;.
+    Gets if &#39;obj&#39; is one of &#39;concrete_types&#39;.
 
     :param obj: The object to check.
-    :param synapse_concrete_type: The SynapseConcreteType to check against &#39;obj&#39;.
-    :return: True if &#39;obj&#39; is a &#39;synapse_concrete_type&#39;.
+    :param concrete_types: The SynapseConcreteTypes to check against &#39;obj&#39;.
+    :return: True if &#39;obj&#39; is one of the &#39;synapse_concrete_types&#39;.
     &#34;&#34;&#34;
     concrete_type_for_obj = cls.get(obj)
-    return concrete_type_for_obj is not None and concrete_type_for_obj.code == synapse_concrete_type.code</code></pre>
+    for concrete_type in concrete_types:
+        concrete_type = cls.get(concrete_type)
+        if concrete_type_for_obj.code == concrete_type.code:
+            return True
+    return False</code></pre>
 </details>
 </dd>
 </dl>
@@ -440,6 +525,30 @@ def is_project(self):
 <pre><code class="python">@property
 def is_unknown(self):
     return self.code == type(self).UNKNOWN.code</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Methods</h3>
+<dl>
+<dt id="synapsis.synapse.synapse_concrete_type.SynapseConcreteType.is_a"><code class="name flex">
+<span>def <span class="ident">is_a</span></span>(<span>self, *concrete_types: str | list[str] | <a title="synapsis.synapse.synapse_concrete_type.SynapseConcreteType" href="#synapsis.synapse.synapse_concrete_type.SynapseConcreteType">SynapseConcreteType</a> | list[<a title="synapsis.synapse.synapse_concrete_type.SynapseConcreteType" href="#synapsis.synapse.synapse_concrete_type.SynapseConcreteType">SynapseConcreteType</a>])</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets if 'self' is one of 'concrete_types'.</p>
+<p>:param concrete_types: The SynapseConcreteTypes to check against 'obj'.
+:return: True if 'obj' is one of the 'synapse_concrete_types'.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_a(self, *concrete_types: str | list[str] | SynapseConcreteType | list[SynapseConcreteType]):
+    &#34;&#34;&#34;
+    Gets if &#39;self&#39; is one of &#39;concrete_types&#39;.
+
+    :param concrete_types: The SynapseConcreteTypes to check against &#39;obj&#39;.
+    :return: True if &#39;obj&#39; is one of the &#39;synapse_concrete_types&#39;.
+    &#34;&#34;&#34;
+    return type(self).is_concrete_type(self, *concrete_types)</code></pre>
 </details>
 </dd>
 </dl>
@@ -988,6 +1097,7 @@ def UPLOAD_TO_TABLE_RESULT(cls) -&gt; SynapseConcreteType:
 <li><code><a title="synapsis.synapse.synapse_concrete_type.SynapseConcreteType.code" href="#synapsis.synapse.synapse_concrete_type.SynapseConcreteType.code">code</a></code></li>
 <li><code><a title="synapsis.synapse.synapse_concrete_type.SynapseConcreteType.get" href="#synapsis.synapse.synapse_concrete_type.SynapseConcreteType.get">get</a></code></li>
 <li><code><a title="synapsis.synapse.synapse_concrete_type.SynapseConcreteType.is_a" href="#synapsis.synapse.synapse_concrete_type.SynapseConcreteType.is_a">is_a</a></code></li>
+<li><code><a title="synapsis.synapse.synapse_concrete_type.SynapseConcreteType.is_concrete_type" href="#synapsis.synapse.synapse_concrete_type.SynapseConcreteType.is_concrete_type">is_concrete_type</a></code></li>
 <li><code><a title="synapsis.synapse.synapse_concrete_type.SynapseConcreteType.is_file" href="#synapsis.synapse.synapse_concrete_type.SynapseConcreteType.is_file">is_file</a></code></li>
 <li><code><a title="synapsis.synapse.synapse_concrete_type.SynapseConcreteType.is_folder" href="#synapsis.synapse.synapse_concrete_type.SynapseConcreteType.is_folder">is_folder</a></code></li>
 <li><code><a title="synapsis.synapse.synapse_concrete_type.SynapseConcreteType.is_project" href="#synapsis.synapse.synapse_concrete_type.SynapseConcreteType.is_project">is_project</a></code></li>

@@ -11,6 +11,14 @@ def test_it_adds_a_hook():
     assert len(hooks.__hooks__) == 1
     assert len(hooks.__hooks__[hooks.AFTER_LOGIN]) == 2
 
+    # Does not duplicate the hook/func.
+    def callback(): pass
+
+    hooks.after_login(callback)
+    assert len(hooks.__hooks__[hooks.AFTER_LOGIN]) == 3
+    hooks.after_login(callback)
+    assert len(hooks.__hooks__[hooks.AFTER_LOGIN]) == 3
+
 
 def test_it_clears_hooks():
     hooks = Hooks()

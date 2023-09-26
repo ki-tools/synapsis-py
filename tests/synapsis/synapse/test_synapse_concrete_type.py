@@ -1,5 +1,4 @@
 import pytest
-
 from synapsis.synapse.synapse_concrete_type import SynapseConcreteType, SynapseConcreteTypes
 import synapseclient
 import synapseclient.core.constants.concrete_types as ct
@@ -28,28 +27,83 @@ def test_get():
         sct = SynapseConcreteType.get(code)
         assert sct.code == code
         assert SynapseConcreteType.get(sct).code == code
-    for obj in [synapseclient.Project(), synapseclient.Folder(parentId=1), synapseclient.File(parentId=1)]:
-        sct = SynapseConcreteType.get(obj)
-        assert sct.code == obj['concreteType']
+
+        if code != SynapseConcreteType.UNKNOWN.code:
+            for data in [
+                {'obj': synapseclient.Entity(concreteType=code), 'code': code},
+                {'obj': {'concreteType': code}, 'code': code},
+                {'obj': {'entity': {'concreteType': code}}, 'code': code}
+            ]:
+                obj = data['obj']
+                expected_code = data['code']
+                sct = SynapseConcreteType.get(obj)
+                assert sct.code == expected_code
+
     assert SynapseConcreteType.get('not-real') == SynapseConcreteType.UNKNOWN
 
+    # https://rest-docs.synapse.org/rest/org/sagebionetworks/repo/model/EntityType.html
+    for data in [
+        {'obj': synapseclient.Project(), 'code': ct.PROJECT_ENTITY},
+        {'obj': synapseclient.Folder(parentId=1), 'code': ct.FOLDER_ENTITY},
+        {'obj': synapseclient.File(parentId=1), 'code': ct.FILE_ENTITY},
+        {'obj': {'entityType': 'project'}, 'code': ct.PROJECT_ENTITY},
+        {'obj': {'entityType': 'folder'}, 'code': ct.FOLDER_ENTITY},
+        {'obj': {'entityType': 'file'}, 'code': ct.FILE_ENTITY},
+        {'obj': {'entityType': 'table'}, 'code': ct.TABLE_ENTITY},
+        {'obj': {'entityType': 'link'}, 'code': ct.LINK_ENTITY},
+        {'obj': {'entityType': 'entityview'}, 'code': SynapseConcreteTypes._UNKNOWN_CODE_},
+        {'obj': {'entityType': 'dockerrepo'}, 'code': SynapseConcreteTypes._UNKNOWN_CODE_},
+        {'obj': {'entityType': 'submissionview'}, 'code': SynapseConcreteTypes._UNKNOWN_CODE_},
+        {'obj': {'entityType': 'dataset'}, 'code': SynapseConcreteTypes._UNKNOWN_CODE_},
+        {'obj': {'entityType': 'datasetcollection'}, 'code': SynapseConcreteTypes._UNKNOWN_CODE_},
+        {'obj': {'entityType': 'materializedview'}, 'code': SynapseConcreteTypes._UNKNOWN_CODE_},
+        {'obj': {'entityType': 'virtualtable'}, 'code': SynapseConcreteTypes._UNKNOWN_CODE_}
+    ]:
+        obj = data['obj']
+        expected_code = data['code']
+        sct = SynapseConcreteType.get(obj)
+        assert sct.code == expected_code
 
-def test_is_a():
-    assert SynapseConcreteType.is_a(SynapseConcreteType.PROJECT_ENTITY.code, SynapseConcreteType.PROJECT_ENTITY)
-    assert SynapseConcreteType.is_a(SynapseConcreteType._UNKNOWN_CODE_, SynapseConcreteType.UNKNOWN)
-    assert SynapseConcreteType.is_a(SynapseConcreteType.UNKNOWN, SynapseConcreteType.UNKNOWN)
+
+def test_is_concrete_type_and_is_a():
+    project_type = SynapseConcreteType.PROJECT_ENTITY
+    folder_type = SynapseConcreteType.FOLDER_ENTITY
+
+    assert project_type.is_a(project_type)
+    assert project_type.is_a(project_type.code)
+
+    assert project_type.is_a(folder_type, project_type)
+    assert project_type.is_a(folder_type.code, project_type.code)
+
+    assert project_type.is_a(folder_type) is False
+    assert project_type.is_a(folder_type.code) is False
+
+    assert SynapseConcreteType.is_concrete_type(project_type, project_type)
+    assert SynapseConcreteType.is_concrete_type(project_type.code, project_type.code)
+
+    assert SynapseConcreteType.is_concrete_type(project_type, folder_type, project_type)
+
+    assert SynapseConcreteType.is_concrete_type(SynapseConcreteType._UNKNOWN_CODE_, SynapseConcreteType.UNKNOWN)
+    assert SynapseConcreteType.is_concrete_type(SynapseConcreteType.UNKNOWN, SynapseConcreteType.UNKNOWN)
 
     for name, code in syn_concrete_types():
         sct = SynapseConcreteType.get(code)
-        assert SynapseConcreteType.is_a(sct.code, sct)
         other_sct = Utils.find(SynapseConcreteType.ALL, lambda a: a.code != sct.code)
-        assert SynapseConcreteType.is_a(other_sct.code, sct) is False
+        assert sct.is_a(sct)
+        assert sct.is_a(sct.code)
+        assert sct.is_a(other_sct, sct)
+        assert sct.is_a(other_sct) is False
+        assert SynapseConcreteType.is_concrete_type(sct, sct)
+        assert SynapseConcreteType.is_concrete_type(sct.code, sct.code)
+        assert SynapseConcreteType.is_concrete_type(other_sct.code, sct.code) is False
 
     for obj in [synapseclient.Project(), synapseclient.Folder(parentId=1), synapseclient.File(parentId=1)]:
         sct = SynapseConcreteType.get(obj)
-        assert SynapseConcreteType.is_a(obj, sct)
         other_sct = Utils.find(SynapseConcreteType.ALL, lambda a: a.code != sct.code)
-        assert SynapseConcreteType.is_a(obj, other_sct) is False
+        assert sct.is_a(sct)
+        assert sct.is_a(other_sct) is False
+        assert SynapseConcreteType.is_concrete_type(obj, sct)
+        assert SynapseConcreteType.is_concrete_type(obj, other_sct) is False
 
 
 def test_ALL():

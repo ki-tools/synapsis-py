@@ -142,6 +142,12 @@ async def test_get_bundle(synapse_test_helper, syn_project):
         include_restriction_information=True
     )
     assert bundle['entity']['id'] == syn_project.id
+    # Test ConcreteType from bundle.
+    assert Synapsis.ConcreteTypes.get(bundle) == Synapsis.ConcreteTypes.PROJECT_ENTITY
+    bundle.pop('entity')
+    assert Synapsis.ConcreteTypes.get(bundle) == Synapsis.ConcreteTypes.PROJECT_ENTITY
+    bundle.pop('entityType')
+    assert Synapsis.ConcreteTypes.get(bundle) == Synapsis.ConcreteTypes.UNKNOWN
 
 
 async def test_copy_file_handles_batch(synapse_test_helper, syn_project, syn_file):
@@ -258,5 +264,6 @@ async def test_find_data_file_handle(synapse_test_helper, syn_file):
     bundle_filehandles = bundle['fileHandles']
     for source in [syn_file, bundle, bundle_filehandles]:
         assert Synapsis.Utils.find_data_file_handle(source)['id'] == expected_file_handle_id
-        assert Synapsis.Utils.find_data_file_handle(source, data_file_handle_id=expected_file_handle_id)[
-                   'id'] == expected_file_handle_id
+        assert Synapsis.Utils.find_data_file_handle(
+            source, data_file_handle_id=expected_file_handle_id
+        )['id'] == expected_file_handle_id

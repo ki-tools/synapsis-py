@@ -195,9 +195,8 @@ class SynapsisUtils(object):
         if isinstance(source, synapseclient.File):
             return source['_file_handle']
         elif isinstance(source, dict):
-            if 'entity' in source and 'dataFileHandleId' in source['entity']:
-                data_file_handle_id = source['entity']['dataFileHandleId']
-            file_handles = source['fileHandles']
+            data_file_handle_id = source.get('entity', {}).get('dataFileHandleId', None)
+            file_handles = source.get('fileHandles', [])
         elif isinstance(source, list):
             file_handles = source
 

@@ -165,7 +165,7 @@ class SynapseConcreteType(object, metaclass=SynapseConcreteTypes):
     name: str
 
     def __init__(self, code: str):
-        self.code = code
+        self.code = type(self).__extract_code___(code)
         self.name = code.split('.')[-1]
         if self.name.endswith('Entity'):
             self.name = self.name.removesuffix('Entity')
@@ -186,28 +186,36 @@ class SynapseConcreteType(object, metaclass=SynapseConcreteTypes):
     def is_unknown(self):
         return self.code == type(self).UNKNOWN.code
 
+    def is_a(self, *concrete_types: str | list[str] | SynapseConcreteType | list[SynapseConcreteType]):
+        """
+        Gets if 'self' is one of 'concrete_types'.
+
+        :param concrete_types: The SynapseConcreteTypes to check against 'obj'.
+        :return: True if 'obj' is one of the 'synapse_concrete_types'.
+        """
+        return type(self).is_concrete_type(self, *concrete_types)
+
     @classmethod
     def get(cls, obj: str | t.Mapping | SynapseConcreteType) -> SynapseConcreteType:
-        if isinstance(obj, str):
-            code = obj
-        elif isinstance(obj, SynapseConcreteType):
-            code = obj.code
-        else:
-            code = syn_utils.concrete_type_of(obj)
-
+        code = cls.__extract_code___(obj)
         return Utils.find(cls.ALL, lambda c: c.code == code, cls.UNKNOWN)
 
     @classmethod
-    def is_a(cls, obj: str | t.Mapping | SynapseConcreteType, synapse_concrete_type: SynapseConcreteType):
+    def is_concrete_type(cls, obj: str | t.Mapping | SynapseConcreteType,
+                         *concrete_types: str | list[str] | SynapseConcreteType | list[SynapseConcreteType]):
         """
-        Gets if 'obj' is a 'synapse_concrete_type'.
+        Gets if 'obj' is one of 'concrete_types'.
 
         :param obj: The object to check.
-        :param synapse_concrete_type: The SynapseConcreteType to check against 'obj'.
-        :return: True if 'obj' is a 'synapse_concrete_type'.
+        :param concrete_types: The SynapseConcreteTypes to check against 'obj'.
+        :return: True if 'obj' is one of the 'synapse_concrete_types'.
         """
         concrete_type_for_obj = cls.get(obj)
-        return concrete_type_for_obj is not None and concrete_type_for_obj.code == synapse_concrete_type.code
+        for concrete_type in concrete_types:
+            concrete_type = cls.get(concrete_type)
+            if concrete_type_for_obj.code == concrete_type.code:
+                return True
+        return False
 
     def __is_generic__(self, item: str) -> bool:
         item = item.replace('is_', '').upper()
@@ -221,3 +229,38 @@ class SynapseConcreteType(object, metaclass=SynapseConcreteTypes):
             return self.__is_generic__(item)
         else:
             return object.__getattribute__(self, item)
+
+    @classmethod
+    def __extract_code___(cls, obj):
+        code = None
+        if isinstance(obj, str):
+            code = obj.strip()
+            # Handle EntityTypes (https://rest-docs.synapse.org/rest/org/sagebionetworks/repo/model/EntityType.html_
+            if not (code == cls._UNKNOWN_CODE_ or code.startswith('org.sagebionetworks.repo.model')):
+                match code:
+                    case 'project':
+                        code = ct.PROJECT_ENTITY
+                    case 'folder':
+                        code = ct.FOLDER_ENTITY
+                    case 'file':
+                        code = ct.FILE_ENTITY
+                    case 'table':
+                        code = ct.TABLE_ENTITY
+                    case 'link':
+                        code = ct.LINK_ENTITY
+                    case _:
+                        code = Utils.find(cls.ALL, lambda c: c.name.lower() == code.lower(), cls.UNKNOWN).code
+        elif isinstance(obj, SynapseConcreteType):
+            code = obj.code
+        else:
+            if isinstance(obj, dict):
+                if 'entity' in obj:
+                    code = cls.__extract_code___(obj.get('entity'))
+                elif 'entityType' in obj:
+                    code = cls.__extract_code___(obj.get('entityType'))
+            if code is None:
+                try:
+                    code = syn_utils.concrete_type_of(obj)
+                except ValueError:
+                    code = cls._UNKNOWN_CODE_
+        return code

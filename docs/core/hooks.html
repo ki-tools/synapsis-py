@@ -46,9 +46,12 @@ class Hooks:
     def __add_hook__(self, hook: str, func: t.Callable):
         if hook not in self.ALL_HOOKS:
             raise ValueError(&#39;Invalid hook: {0}. Must be one of: {1}.&#39;.format(hook, &#39;, &#39;.join(self.ALL_HOOKS)))
+
         if hook not in self.__hooks__:
             self.__hooks__[hook] = []
-        self.__hooks__[hook].append(func)
+
+        if func not in self.__hooks__[hook]:
+            self.__hooks__[hook].append(func)
 
     def __call_hook__(self, hook):
         funcs = self.__hooks__.get(hook, [])
@@ -90,9 +93,12 @@ class Hooks:
     def __add_hook__(self, hook: str, func: t.Callable):
         if hook not in self.ALL_HOOKS:
             raise ValueError(&#39;Invalid hook: {0}. Must be one of: {1}.&#39;.format(hook, &#39;, &#39;.join(self.ALL_HOOKS)))
+
         if hook not in self.__hooks__:
             self.__hooks__[hook] = []
-        self.__hooks__[hook].append(func)
+
+        if func not in self.__hooks__[hook]:
+            self.__hooks__[hook].append(func)
 
     def __call_hook__(self, hook):
         funcs = self.__hooks__.get(hook, [])
