@@ -241,7 +241,7 @@ class SynapsisUtils(object):
         :return: dict
         &#34;&#34;&#34;
         res = self.__synapse__.restGET(&#39;/entity/{0}/filehandles&#39;.format(self.id_of(file)))
-        filehandle = Utils.find(res[&#39;list&#39;], lambda f: f[&#39;status&#39;] == &#39;AVAILABLE&#39; and not f[&#39;isPreview&#39;])
+        filehandle = self.find_data_file_handle(res[&#39;list&#39;])
         return filehandle
 
     def get_filehandles(self,
@@ -277,24 +277,39 @@ class SynapsisUtils(object):
 
         return res.get(&#39;requestedFiles&#39;, [])
 
+    def get_entity_permission(self,
+                              entity: synapseclient.Entity | str,
+                              principal: synapseclient.UserProfile | synapseclient.Team | str | numbers.Number
+                              ) -&gt; SynapsePermission:
+        &#34;&#34;&#34;
+        Gets the permission on an Entity for a user or team.
+
+        :param entity: The Entity or ID to get the permission on.
+        :param principal: The UserProfile, Team, or ID to get permission for.
+        :return: SynapsePermission
+        &#34;&#34;&#34;
+        principal_id = self.id_of(principal)
+        current_access_types = self.__synapse__.getPermissions(entity, principalId=principal_id)
+        return SynapsePermission.get(current_access_types, SynapsePermission.NO_PERMISSION)
+
     def set_entity_permission(self,
                               entity: synapseclient.Entity | str,
                               principal: synapseclient.UserProfile | synapseclient.Team | str | numbers.Number,
                               permission: SynapsePermission | PermissionCode | AccessTypes | None) -&gt; dict | None:
         &#34;&#34;&#34;
-        Set the permission on an Entity.
+        Set the permission on an Entity for a user or team.
 
         :param entity: The Entity or ID to change the permission on.
         :param principal: The UserProfile, Team, or ID to change permission on.
         :param permission: SynapsePermission, SynapsePermission.code, list of permissions, or None to remove the permission.
         :return: dict if permission updated else None.
         &#34;&#34;&#34;
-        principal_id = self.id_of(principal)
-        permission = self.__to_permission__(permission)
+        permission = SynapsePermission.get(permission, SynapsePermission.NO_PERMISSION)
 
         # Check if the principal has been added to the entity and what permission it has.
-        current_access_types = self.__synapse__.getPermissions(entity, principalId=principal_id)
-        if not permission.equals(current_access_types):
+        current_permission = self.get_entity_permission(entity, principal)
+        if not permission.equals(current_permission):
+            principal_id = self.id_of(principal)
             return self.__synapse__.setPermissions(entity, principal_id, accessType=permission.access_types)
         else:
             return None
@@ -351,7 +366,7 @@ class SynapsisUtils(object):
         &#34;&#34;&#34;
         team_id = self.id_of(team)
         user_id = self.id_of(user)
-        permission = self.__to_permission__(permission)
+        permission = SynapsePermission.get(permission, SynapsePermission.NO_PERMISSION)
 
         team_acl = self.__synapse__.restGET(&#39;/team/{0}/acl&#39;.format(team_id))
         user_access = Utils.find(team_acl[&#39;resourceAccess&#39;], lambda a: str(a.get(&#39;principalId&#39;)) == str(user_id))
@@ -429,24 +444,7 @@ class SynapsisUtils(object):
         if return_replaced:
             return new_name, replaced
         else:
-            return new_name
-
-    def __to_permission__(self, value: SynapsePermission | PermissionCode | AccessTypes | None) -&gt; SynapsePermission:
-        &#34;&#34;&#34;
-        Gets a SynapsePermission from an arg or raises NotFoundError.
-
-        :param value: SynapsePermission, SynapsePermission.code, SynapsePermission.access_types, or None.
-        :return: SynapsePermission
-        :raise NotFoundError if the SynapsePermission is not found.
-        &#34;&#34;&#34;
-        if isinstance(value, SynapsePermission):
-            return value
-        elif isinstance(value, str):
-            return SynapsePermission.find_by(code=value, raises=True)
-        elif isinstance(value, list):
-            return SynapsePermission.find_by(access_types=value, raises=True)
-        elif value is None:
-            return SynapsePermission.NO_PERMISSION</code></pre>
+            return new_name</code></pre>
 </details>
 </section>
 <section>
@@ -665,7 +663,7 @@ class SynapsisUtils(object):
         :return: dict
         &#34;&#34;&#34;
         res = self.__synapse__.restGET(&#39;/entity/{0}/filehandles&#39;.format(self.id_of(file)))
-        filehandle = Utils.find(res[&#39;list&#39;], lambda f: f[&#39;status&#39;] == &#39;AVAILABLE&#39; and not f[&#39;isPreview&#39;])
+        filehandle = self.find_data_file_handle(res[&#39;list&#39;])
         return filehandle
 
     def get_filehandles(self,
@@ -701,24 +699,39 @@ class SynapsisUtils(object):
 
         return res.get(&#39;requestedFiles&#39;, [])
 
+    def get_entity_permission(self,
+                              entity: synapseclient.Entity | str,
+                              principal: synapseclient.UserProfile | synapseclient.Team | str | numbers.Number
+                              ) -&gt; SynapsePermission:
+        &#34;&#34;&#34;
+        Gets the permission on an Entity for a user or team.
+
+        :param entity: The Entity or ID to get the permission on.
+        :param principal: The UserProfile, Team, or ID to get permission for.
+        :return: SynapsePermission
+        &#34;&#34;&#34;
+        principal_id = self.id_of(principal)
+        current_access_types = self.__synapse__.getPermissions(entity, principalId=principal_id)
+        return SynapsePermission.get(current_access_types, SynapsePermission.NO_PERMISSION)
+
     def set_entity_permission(self,
                               entity: synapseclient.Entity | str,
                               principal: synapseclient.UserProfile | synapseclient.Team | str | numbers.Number,
                               permission: SynapsePermission | PermissionCode | AccessTypes | None) -&gt; dict | None:
         &#34;&#34;&#34;
-        Set the permission on an Entity.
+        Set the permission on an Entity for a user or team.
 
         :param entity: The Entity or ID to change the permission on.
         :param principal: The UserProfile, Team, or ID to change permission on.
         :param permission: SynapsePermission, SynapsePermission.code, list of permissions, or None to remove the permission.
         :return: dict if permission updated else None.
         &#34;&#34;&#34;
-        principal_id = self.id_of(principal)
-        permission = self.__to_permission__(permission)
+        permission = SynapsePermission.get(permission, SynapsePermission.NO_PERMISSION)
 
         # Check if the principal has been added to the entity and what permission it has.
-        current_access_types = self.__synapse__.getPermissions(entity, principalId=principal_id)
-        if not permission.equals(current_access_types):
+        current_permission = self.get_entity_permission(entity, principal)
+        if not permission.equals(current_permission):
+            principal_id = self.id_of(principal)
             return self.__synapse__.setPermissions(entity, principal_id, accessType=permission.access_types)
         else:
             return None
@@ -775,7 +788,7 @@ class SynapsisUtils(object):
         &#34;&#34;&#34;
         team_id = self.id_of(team)
         user_id = self.id_of(user)
-        permission = self.__to_permission__(permission)
+        permission = SynapsePermission.get(permission, SynapsePermission.NO_PERMISSION)
 
         team_acl = self.__synapse__.restGET(&#39;/team/{0}/acl&#39;.format(team_id))
         user_access = Utils.find(team_acl[&#39;resourceAccess&#39;], lambda a: str(a.get(&#39;principalId&#39;)) == str(user_id))
@@ -853,24 +866,7 @@ class SynapsisUtils(object):
         if return_replaced:
             return new_name, replaced
         else:
-            return new_name
-
-    def __to_permission__(self, value: SynapsePermission | PermissionCode | AccessTypes | None) -&gt; SynapsePermission:
-        &#34;&#34;&#34;
-        Gets a SynapsePermission from an arg or raises NotFoundError.
-
-        :param value: SynapsePermission, SynapsePermission.code, SynapsePermission.access_types, or None.
-        :return: SynapsePermission
-        :raise NotFoundError if the SynapsePermission is not found.
-        &#34;&#34;&#34;
-        if isinstance(value, SynapsePermission):
-            return value
-        elif isinstance(value, str):
-            return SynapsePermission.find_by(code=value, raises=True)
-        elif isinstance(value, list):
-            return SynapsePermission.find_by(access_types=value, raises=True)
-        elif value is None:
-            return SynapsePermission.NO_PERMISSION</code></pre>
+            return new_name</code></pre>
 </details>
 <h3>Methods</h3>
 <dl>
@@ -1061,6 +1057,34 @@ class SynapsisUtils(object):
                                          body=json.dumps(request))</code></pre>
 </details>
 </dd>
+<dt id="synapsis.core.synapsis_utils.SynapsisUtils.get_entity_permission"><code class="name flex">
+<span>def <span class="ident">get_entity_permission</span></span>(<span>self, entity: synapseclient.Entity | str, principal: synapseclient.UserProfile | synapseclient.Team | str | numbers.Number) ‑> <a title="synapsis.synapse.synapse_permission.SynapsePermission" href="../synapse/synapse_permission.html#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the permission on an Entity for a user or team.</p>
+<p>:param entity: The Entity or ID to get the permission on.
+:param principal: The UserProfile, Team, or ID to get permission for.
+:return: SynapsePermission</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_entity_permission(self,
+                          entity: synapseclient.Entity | str,
+                          principal: synapseclient.UserProfile | synapseclient.Team | str | numbers.Number
+                          ) -&gt; SynapsePermission:
+    &#34;&#34;&#34;
+    Gets the permission on an Entity for a user or team.
+
+    :param entity: The Entity or ID to get the permission on.
+    :param principal: The UserProfile, Team, or ID to get permission for.
+    :return: SynapsePermission
+    &#34;&#34;&#34;
+    principal_id = self.id_of(principal)
+    current_access_types = self.__synapse__.getPermissions(entity, principalId=principal_id)
+    return SynapsePermission.get(current_access_types, SynapsePermission.NO_PERMISSION)</code></pre>
+</details>
+</dd>
 <dt id="synapsis.core.synapsis_utils.SynapsisUtils.get_filehandle"><code class="name flex">
 <span>def <span class="ident">get_filehandle</span></span>(<span>self, file: synapseclient.File | str) ‑> Optional[dict]</span>
 </code></dt>
@@ -1080,7 +1104,7 @@ class SynapsisUtils(object):
     :return: dict
     &#34;&#34;&#34;
     res = self.__synapse__.restGET(&#39;/entity/{0}/filehandles&#39;.format(self.id_of(file)))
-    filehandle = Utils.find(res[&#39;list&#39;], lambda f: f[&#39;status&#39;] == &#39;AVAILABLE&#39; and not f[&#39;isPreview&#39;])
+    filehandle = self.find_data_file_handle(res[&#39;list&#39;])
     return filehandle</code></pre>
 </details>
 </dd>
@@ -1390,7 +1414,7 @@ class SynapsisUtils(object):
 <span>def <span class="ident">set_entity_permission</span></span>(<span>self, entity: synapseclient.Entity | str, principal: synapseclient.UserProfile | synapseclient.Team | str | numbers.Number, permission: SynapsePermission | PermissionCode | AccessTypes | None) ‑> Optional[dict]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Set the permission on an Entity.</p>
+<div class="desc"><p>Set the permission on an Entity for a user or team.</p>
 <p>:param entity: The Entity or ID to change the permission on.
 :param principal: The UserProfile, Team, or ID to change permission on.
 :param permission: SynapsePermission, SynapsePermission.code, list of permissions, or None to remove the permission.
@@ -1404,19 +1428,19 @@ class SynapsisUtils(object):
                           principal: synapseclient.UserProfile | synapseclient.Team | str | numbers.Number,
                           permission: SynapsePermission | PermissionCode | AccessTypes | None) -&gt; dict | None:
     &#34;&#34;&#34;
-    Set the permission on an Entity.
+    Set the permission on an Entity for a user or team.
 
     :param entity: The Entity or ID to change the permission on.
     :param principal: The UserProfile, Team, or ID to change permission on.
     :param permission: SynapsePermission, SynapsePermission.code, list of permissions, or None to remove the permission.
     :return: dict if permission updated else None.
     &#34;&#34;&#34;
-    principal_id = self.id_of(principal)
-    permission = self.__to_permission__(permission)
+    permission = SynapsePermission.get(permission, SynapsePermission.NO_PERMISSION)
 
     # Check if the principal has been added to the entity and what permission it has.
-    current_access_types = self.__synapse__.getPermissions(entity, principalId=principal_id)
-    if not permission.equals(current_access_types):
+    current_permission = self.get_entity_permission(entity, principal)
+    if not permission.equals(current_permission):
+        principal_id = self.id_of(principal)
         return self.__synapse__.setPermissions(entity, principal_id, accessType=permission.access_types)
     else:
         return None</code></pre>
@@ -1449,7 +1473,7 @@ class SynapsisUtils(object):
     &#34;&#34;&#34;
     team_id = self.id_of(team)
     user_id = self.id_of(user)
-    permission = self.__to_permission__(permission)
+    permission = SynapsePermission.get(permission, SynapsePermission.NO_PERMISSION)
 
     team_acl = self.__synapse__.restGET(&#39;/team/{0}/acl&#39;.format(team_id))
     user_access = Utils.find(team_acl[&#39;resourceAccess&#39;], lambda a: str(a.get(&#39;principalId&#39;)) == str(user_id))
@@ -1493,6 +1517,7 @@ class SynapsisUtils(object):
 <li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.find_data_file_handle" href="#synapsis.core.synapsis_utils.SynapsisUtils.find_data_file_handle">find_data_file_handle</a></code></li>
 <li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.find_entity" href="#synapsis.core.synapsis_utils.SynapsisUtils.find_entity">find_entity</a></code></li>
 <li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.get_bundle" href="#synapsis.core.synapsis_utils.SynapsisUtils.get_bundle">get_bundle</a></code></li>
+<li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.get_entity_permission" href="#synapsis.core.synapsis_utils.SynapsisUtils.get_entity_permission">get_entity_permission</a></code></li>
 <li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.get_filehandle" href="#synapsis.core.synapsis_utils.SynapsisUtils.get_filehandle">get_filehandle</a></code></li>
 <li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.get_filehandles" href="#synapsis.core.synapsis_utils.SynapsisUtils.get_filehandles">get_filehandles</a></code></li>
 <li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.get_project" href="#synapsis.core.synapsis_utils.SynapsisUtils.get_project">get_project</a></code></li>

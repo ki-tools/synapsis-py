@@ -108,7 +108,7 @@ def test_is_concrete_type_and_is_a():
 
 def test_ALL():
     for name, code in syn_concrete_types():
-        assert Utils.find(SynapseConcreteType.ALL, lambda a: a.code == code, None)
+        assert Utils.find(SynapseConcreteType.ALL, lambda a: a.code == code)
 
 
 def test_UNKNOWN():

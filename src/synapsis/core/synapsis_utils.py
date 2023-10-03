@@ -213,7 +213,7 @@ class SynapsisUtils(object):
         :return: dict
         """
         res = self.__synapse__.restGET('/entity/{0}/filehandles'.format(self.id_of(file)))
-        filehandle = Utils.find(res['list'], lambda f: f['status'] == 'AVAILABLE' and not f['isPreview'])
+        filehandle = self.find_data_file_handle(res['list'])
         return filehandle
 
     def get_filehandles(self,
@@ -249,24 +249,39 @@ class SynapsisUtils(object):
 
         return res.get('requestedFiles', [])
 
+    def get_entity_permission(self,
+                              entity: synapseclient.Entity | str,
+                              principal: synapseclient.UserProfile | synapseclient.Team | str | numbers.Number
+                              ) -> SynapsePermission:
+        """
+        Gets the permission on an Entity for a user or team.
+
+        :param entity: The Entity or ID to get the permission on.
+        :param principal: The UserProfile, Team, or ID to get permission for.
+        :return: SynapsePermission
+        """
+        principal_id = self.id_of(principal)
+        current_access_types = self.__synapse__.getPermissions(entity, principalId=principal_id)
+        return SynapsePermission.get(current_access_types, SynapsePermission.NO_PERMISSION)
+
     def set_entity_permission(self,
                               entity: synapseclient.Entity | str,
                               principal: synapseclient.UserProfile | synapseclient.Team | str | numbers.Number,
                               permission: SynapsePermission | PermissionCode | AccessTypes | None) -> dict | None:
         """
-        Set the permission on an Entity.
+        Set the permission on an Entity for a user or team.
 
         :param entity: The Entity or ID to change the permission on.
         :param principal: The UserProfile, Team, or ID to change permission on.
         :param permission: SynapsePermission, SynapsePermission.code, list of permissions, or None to remove the permission.
         :return: dict if permission updated else None.
         """
-        principal_id = self.id_of(principal)
-        permission = self.__to_permission__(permission)
+        permission = SynapsePermission.get(permission, SynapsePermission.NO_PERMISSION)
 
         # Check if the principal has been added to the entity and what permission it has.
-        current_access_types = self.__synapse__.getPermissions(entity, principalId=principal_id)
-        if not permission.equals(current_access_types):
+        current_permission = self.get_entity_permission(entity, principal)
+        if not permission.equals(current_permission):
+            principal_id = self.id_of(principal)
             return self.__synapse__.setPermissions(entity, principal_id, accessType=permission.access_types)
         else:
             return None
@@ -323,7 +338,7 @@ class SynapsisUtils(object):
         """
         team_id = self.id_of(team)
         user_id = self.id_of(user)
-        permission = self.__to_permission__(permission)
+        permission = SynapsePermission.get(permission, SynapsePermission.NO_PERMISSION)
 
         team_acl = self.__synapse__.restGET('/team/{0}/acl'.format(team_id))
         user_access = Utils.find(team_acl['resourceAccess'], lambda a: str(a.get('principalId')) == str(user_id))
@@ -402,20 +417,3 @@ class SynapsisUtils(object):
             return new_name, replaced
         else:
             return new_name
-
-    def __to_permission__(self, value: SynapsePermission | PermissionCode | AccessTypes | None) -> SynapsePermission:
-        """
-        Gets a SynapsePermission from an arg or raises NotFoundError.
-
-        :param value: SynapsePermission, SynapsePermission.code, SynapsePermission.access_types, or None.
-        :return: SynapsePermission
-        :raise NotFoundError if the SynapsePermission is not found.
-        """
-        if isinstance(value, SynapsePermission):
-            return value
-        elif isinstance(value, str):
-            return SynapsePermission.find_by(code=value, raises=True)
-        elif isinstance(value, list):
-            return SynapsePermission.find_by(access_types=value, raises=True)
-        elif value is None:
-            return SynapsePermission.NO_PERMISSION

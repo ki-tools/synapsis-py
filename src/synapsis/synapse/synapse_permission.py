@@ -1,7 +1,8 @@
 from __future__ import annotations
 import typing as t
+from collections.abc import Collection
 import functools
-from ..core import Utils, exceptions
+from ..core import Utils, exceptions, Narg, none
 
 AccessTypes = t.NewType('AccessTypes', list[str])
 PermissionCode = t.NewType('PermissionCode', str)
@@ -11,8 +12,7 @@ class SynapsePermissions(type):
     @property
     @functools.cache
     def ALL(cls) -> list[SynapsePermission]:
-        return [cls.NO_PERMISSION] + Utils.select(cls.ENTITY_PERMISSIONS + cls.TEAM_PERMISSIONS,
-                                                  lambda p: p.code != cls.NO_PERMISSION.code)
+        return Utils.unique(cls.ENTITY_PERMISSIONS + cls.TEAM_PERMISSIONS, key='code')
 
     @property
     @functools.cache
@@ -29,7 +29,10 @@ class SynapsePermissions(type):
     @property
     @functools.cache
     def TEAM_PERMISSIONS(cls) -> list[SynapsePermission]:
-        return [cls.NO_PERMISSION, cls.TEAM_MANAGER]
+        return [
+            cls.NO_PERMISSION,
+            cls.TEAM_MANAGER
+        ]
 
     @property
     @functools.cache
@@ -99,41 +102,63 @@ class SynapsePermissions(type):
 
 
 class SynapsePermission(object, metaclass=SynapsePermissions):
-    code: PermissionCode
-    name: str
-    access_types: AccessTypes
 
     def __init__(self, code: PermissionCode, name: str, access_types: AccessTypes) -> None:
-        self.code = code
-        self.name = name
-        self.access_types = access_types
+        self._code = code
+        self._name = name
+        self._access_types = sorted(access_types)
 
-    def equals(self, other: SynapsePermission | AccessTypes) -> bool:
-        """Are equal if the access_types match."""
+    @property
+    def code(self) -> PermissionCode:
+        return self._code
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def access_types(self) -> AccessTypes:
+        return self._access_types
+
+    def equals(self, other: SynapsePermission | AccessTypes | PermissionCode) -> bool:
+        """Gets if self and other are the same permission."""
         return self.are_equal(self, other)
 
     @classmethod
-    def are_equal(cls, a: SynapsePermission | AccessTypes, b: SynapsePermission | AccessTypes) -> bool:
-        """Are equal if the access_types match."""
-        a_access_types = a.access_types if isinstance(a, SynapsePermission) else a
-        b_access_types = b.access_types if isinstance(b, SynapsePermission) else b
-        if a_access_types is None or b_access_types is None:
+    def are_equal(cls,
+                  a: SynapsePermission | AccessTypes | PermissionCode,
+                  b: SynapsePermission | AccessTypes | PermissionCode) -> bool:
+        """Gets if two permissions are the same."""
+        if a is None or b is None:
             return False
-        return set(a_access_types) == set(b_access_types)
+        a_perm = cls.get(a, None)
+        b_perm = cls.get(b, None)
+        if not (a_perm and b_perm):
+            return False
+        else:
+            return a_perm.code == b_perm.code and a_perm.access_types == b_perm.access_types
 
     @classmethod
-    def find_by(cls,
-                code: PermissionCode = None,
-                access_types: AccessTypes = None,
-                raises: t.Optional[bool] = False) -> SynapsePermission | None:
-        code = code.upper() if code is not None else None
-        access_types = [a.upper() for a in access_types] if access_types is not None else None
-        if code is None and access_types is None:
-            raise ValueError('code or access_types are required.')
-        found = Utils.find(cls.ALL,
-                           lambda p: p.code == (code if code else p.code) and
-                                     set(p.access_types) == set(access_types if access_types else p.access_types))
-        if raises and found is None:
-            raise exceptions.NotFoundError(
-                'Could not find SynapsePermission with code: {0}, access_types: {1}.'.format(code, access_types))
-        return found
+    def get(cls,
+            value: SynapsePermission | PermissionCode | AccessTypes | None,
+            default: SynapsePermission | None = none) -> SynapsePermission:
+        """Gets a SynapsePermission"""
+        permission = None
+        if isinstance(value, SynapsePermission):
+            permission = Utils.find(cls.ALL, lambda p: p.code == value.code and p.access_types == value.access_types)
+        elif isinstance(value, str):
+            _value = value.upper()
+            permission = Utils.find(cls.ALL, key='code', value=_value)
+        elif isinstance(value, Collection):
+            _value = sorted(Utils.map(value, str.upper))
+            permission = Utils.find(cls.ALL, key='access_types', value=_value)
+        elif value is not None:
+            raise ValueError('Invalid value: {0}'.find(value))
+
+        if permission is None:
+            if Narg.is_narg(default):
+                raise exceptions.NotFoundError('Could not find SynapsePermission with: {0}'.format(value))
+            else:
+                return default
+        else:
+            return permission

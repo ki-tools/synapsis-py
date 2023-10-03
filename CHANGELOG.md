@@ -1,5 +1,14 @@
 # Change Log
 
+## Version 0.0.4 (2023-10-03)
+
+### Changes
+
+- Auth token will take precedence over user/pass when logging into Synapse.
+- Added Synapsis.Utils.get_entity_permission(...).
+- Replaced SynapsePermission.find_by(...) with SynapsePermission.get(...).
+- Refactored `utils`.
+
 ## Version 0.0.3 (2023-09-25)
 
 ### Changes

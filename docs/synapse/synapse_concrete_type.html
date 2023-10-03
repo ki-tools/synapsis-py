@@ -226,7 +226,7 @@ class SynapseConcreteType(object, metaclass=SynapseConcreteTypes):
     @classmethod
     def get(cls, obj: str | t.Mapping | SynapseConcreteType) -&gt; SynapseConcreteType:
         code = cls.__extract_code___(obj)
-        return Utils.find(cls.ALL, lambda c: c.code == code, cls.UNKNOWN)
+        return Utils.find(cls.ALL, key=&#39;code&#39;, value=code, default=cls.UNKNOWN)
 
     @classmethod
     def is_concrete_type(cls, obj: str | t.Mapping | SynapseConcreteType,
@@ -277,7 +277,7 @@ class SynapseConcreteType(object, metaclass=SynapseConcreteTypes):
                     case &#39;link&#39;:
                         code = ct.LINK_ENTITY
                     case _:
-                        code = Utils.find(cls.ALL, lambda c: c.name.lower() == code.lower(), cls.UNKNOWN).code
+                        code = Utils.find(cls.ALL, lambda c: c.name.lower() == code.lower(), default=cls.UNKNOWN).code
         elif isinstance(obj, SynapseConcreteType):
             code = obj.code
         else:
@@ -351,7 +351,7 @@ class SynapseConcreteType(object, metaclass=SynapseConcreteTypes):
     @classmethod
     def get(cls, obj: str | t.Mapping | SynapseConcreteType) -&gt; SynapseConcreteType:
         code = cls.__extract_code___(obj)
-        return Utils.find(cls.ALL, lambda c: c.code == code, cls.UNKNOWN)
+        return Utils.find(cls.ALL, key=&#39;code&#39;, value=code, default=cls.UNKNOWN)
 
     @classmethod
     def is_concrete_type(cls, obj: str | t.Mapping | SynapseConcreteType,
@@ -402,7 +402,7 @@ class SynapseConcreteType(object, metaclass=SynapseConcreteTypes):
                     case &#39;link&#39;:
                         code = ct.LINK_ENTITY
                     case _:
-                        code = Utils.find(cls.ALL, lambda c: c.name.lower() == code.lower(), cls.UNKNOWN).code
+                        code = Utils.find(cls.ALL, lambda c: c.name.lower() == code.lower(), default=cls.UNKNOWN).code
         elif isinstance(obj, SynapseConcreteType):
             code = obj.code
         else:
@@ -443,7 +443,7 @@ class SynapseConcreteType(object, metaclass=SynapseConcreteTypes):
 <pre><code class="python">@classmethod
 def get(cls, obj: str | t.Mapping | SynapseConcreteType) -&gt; SynapseConcreteType:
     code = cls.__extract_code___(obj)
-    return Utils.find(cls.ALL, lambda c: c.code == code, cls.UNKNOWN)</code></pre>
+    return Utils.find(cls.ALL, key=&#39;code&#39;, value=code, default=cls.UNKNOWN)</code></pre>
 </details>
 </dd>
 <dt id="synapsis.synapse.synapse_concrete_type.SynapseConcreteType.is_concrete_type"><code class="name flex">

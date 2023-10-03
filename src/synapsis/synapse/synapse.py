@@ -30,17 +30,28 @@ class Synapse(synapseclient.Synapse):
 
     def __build_init_args__(self):
         init_args = {**Synapse.__SYNAPSE_INIT_ARGS_DEFAULT__, **self.__synapse_init_args__}
-        init_args['configPath'] = init_args.get('configPath', None) or os.environ.get('SYNAPSE_CONFIG_FILE', None)
-        if init_args['configPath'] is None:
-            init_args.pop('configPath')
+        self.__from_arg_or_env__(init_args, 'configPath', 'SYNAPSE_CONFIG_FILE')
         return init_args
 
     def __build_login_args__(self):
         login_args = {**Synapse.__SYNAPSE_LOGIN_ARGS_DEFAULT__, **self.__synapse_login_args__}
-        login_args['email'] = login_args.get('email', None) or os.environ.get('SYNAPSE_USERNAME', None)
-        login_args['password'] = login_args.get('password', None) or os.environ.get('SYNAPSE_PASSWORD', None)
-        login_args['authToken'] = login_args.get('authToken', None) or os.environ.get('SYNAPSE_AUTH_TOKEN', None)
+        self.__from_arg_or_env__(login_args, 'authToken', 'SYNAPSE_AUTH_TOKEN')
+        if 'authToken' not in login_args:
+            self.__from_arg_or_env__(login_args, 'email', 'SYNAPSE_USERNAME')
+            self.__from_arg_or_env__(login_args, 'password', 'SYNAPSE_PASSWORD')
         return login_args
+
+    def __from_arg_or_env__(self, args, key, env_var):
+        arg_value = args and args.get(key, None)
+        env_value = os.environ.get(env_var, None)
+        for value in [arg_value, env_value]:
+            if value is not None and str(value).strip() != '':
+                args[key] = value
+                return value
+
+        if key in args:
+            args.pop(key)
+        return None
 
     def __login__(self, hooks=None):
         """Login to Synapse.

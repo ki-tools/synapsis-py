@@ -28,99 +28,230 @@
 </summary>
 <pre><code class="python">from __future__ import annotations
 import typing as t
+from collections.abc import Iterable
 import builtins
-import inspect
+import operator
+from .narg import Narg, none
 
 
 class Utils:
     @classmethod
-    def find(cls, iterable: iter, *args, **kwargs) -&gt; t.Any:
+    def find(cls,
+             iterable: iter,
+             *args,
+             func: t.Callable = none,
+             default: t.Any = None,
+             key: str = none,
+             value: t.Any = none) -&gt; t.Any:
         &#34;&#34;&#34;
-        Returns the first item in the iterable returning True or a default.
+        Gets the first item in the iterable returning True.
         Args:
-            iterable:
-            *args:
-                Predicate is the first callable arg.
-                Default value is the first arg that is not the predicate, otherwise None.
+            iterable: Items.
+            func: Predicate. Or the first positional arg.
+            default: Value to return if no items match the predicate.
+            key: Name of the attribute to check.
+            value: Value to match.
 
         Returns: Object
         &#34;&#34;&#34;
-        pred = cls.__parse_func__(*args, **kwargs)
-        default = kwargs.get(&#39;default&#39;, None) or next(filter(lambda a: a != pred, args), None)
-        return next(filter(pred, iterable), default)
+        return next(cls.__build_filter__(iterable, *args, func=func, key=key, value=value), default)
 
     @classmethod
-    def map(cls, *args, **kwargs) -&gt; list[t.Any]:
+    def select(cls,
+               iterable: iter,
+               *args,
+               func: t.Callable = none,
+               key: str = none,
+               value: t.Any = none) -&gt; list[t.Any]:
         &#34;&#34;&#34;
-        Returns all the items in the iterable(s) mapped to from the function.
+        Gets all the items in the iterable returning True.
         Args:
-            iterable(s):
-            *args:
-                Function is the first callable arg.
-                Default value is the first arg that is not the function, otherwise [].
+            iterable: Items.
+            func: Predicate. Or the first positional arg.
+            key: Name of the attribute to check.
+            value: Value to match.
 
         Returns: List
         &#34;&#34;&#34;
-        func = cls.__parse_func__(*args, **kwargs)
-        iterables = kwargs.get(&#39;iterables&#39;, None) or cls.select(args, lambda a: a != func and isinstance(a, t.Iterable))
+        return list(cls.__build_filter__(iterable, *args, func=func, key=key, value=value))
+
+    @classmethod
+    def first(cls,
+              iterable: iter,
+              *args,
+              func: t.Callable = none,
+              default: t.Any = None,
+              key: str = none,
+              value: t.Any = none) -&gt; t.Any:
+        &#34;&#34;&#34;
+        Gets the first item in the iterable, or the first item returning True.
+        Args:
+            iterable: Items.
+            func: Predicate. Or the first positional arg.
+            default: Value to return if no items match the predicate.
+            key: Name of the attribute to check.
+            value: Value to match.
+
+        Returns: Object
+        &#34;&#34;&#34;
+        return next(
+            cls.__build_filter__(iterable, *args,
+                                 func=func, key=key, value=value, default_func=cls.__always_true__),
+            default)
+
+    @classmethod
+    def last(cls,
+             iterable: iter,
+             *args,
+             func: t.Callable = none,
+             default: t.Any = None,
+             key: str = none,
+             value: t.Any = none) -&gt; t.Any:
+        &#34;&#34;&#34;
+        Gets the last item in the iterable, or the last item returning True.
+        Args:
+            iterable: Items.
+            func: Predicate. Or the first positional arg.
+            default: Value to return if no items match the predicate.
+            key: Name of the attribute to check.
+            value: Value to match
+
+        Returns: Object
+        &#34;&#34;&#34;
+        reversed_iterable = iterable and iterable[::-1]
+        return next(
+            cls.__build_filter__(reversed_iterable, *args,
+                                 func=func, key=key, value=value, default_func=cls.__always_true__),
+            default)
+
+    @classmethod
+    def map(cls,
+            *iterables,
+            func: t.Callable = none,
+            key: str = none) -&gt; list[t.Any]:
+        &#34;&#34;&#34;
+        Gets all the items in the iterable(s) mapped.
+        Args:
+            func: Callable to transform each item. Or the last positional arg.
+            key: Name of the attribute to map.
+            iterables: List of iterables.
+
+        Returns: List
+        &#34;&#34;&#34;
+        if not func and len(iterables) &gt; 1:
+            func = iterables[-1]
+            iterables = iterables[:-1]
+
+        if Narg.is_set(key):
+            if func:
+                _orig_func = func
+                func = lambda i: _orig_func(cls.__getattr_by_key__(i, key))
+            else:
+                func = lambda i: cls.__getattr_by_key__(i, key)
+
+        if Narg.is_narg(func):
+            func = None
+
         return list(builtins.map(func, *iterables))
 
     @classmethod
-    def select(cls, iterable: iter, *args) -&gt; list[t.Any]:
+    def unique(cls,
+               iterable: iter,
+               *args,
+               func: t.Callable = none,
+               key: str = none) -&gt; list[t.Any]:
         &#34;&#34;&#34;
-        Returns all the items in the iterable returning True or a default.
+        Gets a list of unique items in the iterable.
         Args:
-            iterable:
-            *args:
-                Predicate is the first callable arg.
-                Default value is the first arg that is not the predicate, otherwise [].
-
-        Returns: List
-        &#34;&#34;&#34;
-        pred = cls.__parse_func__(*args)
-        default = next(filter(lambda a: a != pred, args), [])
-        return list(filter(pred, iterable)) or default
-
-    @classmethod
-    def first(cls, iterable: iter, *args) -&gt; t.Any:
-        &#34;&#34;&#34;
-        Returns the first item in the iterable or a default.
-        Args:
-            iterable:
-            *args:
-                Predicate is the first callable arg.
-                Default value is the first arg that is not the predicate, otherwise None.
+            iterable: Items.
+            func: Callable to return a value to check for uniqueness. Or the first positional arg.
+            key: Name of the attribute to get the value from to check for uniqueness.
 
         Returns: Object
         &#34;&#34;&#34;
-        if len(args):
-            return cls.find(iterable, *args)
-        else:
-            return iterable[0] if len(iterable) else None
+        if not func and len(args):
+            func = args[0]
+
+        if Narg.is_set(key):
+            if func:
+                _orig_func = func
+                func = lambda i: _orig_func(cls.__getattr_by_key__(i, key))
+            else:
+                func = lambda i: cls.__getattr_by_key__(i, key)
+
+        results = []
+        uniq_values = []
+        for item in iterable:
+            if func:
+                value = func(item)
+                if operator.countOf(uniq_values, value) == 0:
+                    results.append(item)
+                    uniq_values.append(value)
+            else:
+                if operator.countOf(results, item) == 0:
+                    results.append(item)
+
+        return results
 
     @classmethod
-    def last(cls, iterable: iter, *args) -&gt; t.Any:
+    def __build_filter__(cls,
+                         iterable: iter,
+                         *args,
+                         func: t.Callable = none,
+                         default_func: t.Callable = None,
+                         key: str = none,
+                         value: t.Any = none) -&gt; t.Any:
         &#34;&#34;&#34;
-        Returns the last item in the iterable or a default.
+        Builds an iterable filter.
         Args:
-            iterable:
-            *args:
-                Predicate is the first callable arg.
-                Default value is the first arg that is not the predicate, otherwise None.
+            iterable: Items.
+            func: Predicate. Or the first positional arg.
+            default_func: Predicate to use if func is not set or found.
+            key: Name of the attribute to check.
+            value: Value to match.
 
         Returns: Object
         &#34;&#34;&#34;
-        reversed_iterable = iterable[::-1]
-        if len(args):
-            return cls.first(reversed_iterable, *args)
-        else:
-            return reversed_iterable[0] if len(reversed_iterable) else None
+        if not func and len(args):
+            func = args[0]
+
+        if Narg.is_set(key, value):
+            if func:
+                _orig_func = func
+                func = lambda i: _orig_func(cls.__getattr_by_key__(i, key)) == value
+            else:
+                func = lambda i: cls.__getattr_by_key__(i, key) == value
+        elif Narg.is_set(key):
+            if func:
+                _orig_func = func
+                func = lambda i: _orig_func(cls.__getattr_by_key__(i, key))
+            else:
+                func = lambda i: cls.__getattr_by_key__(i, key)
+        elif Narg.is_set(value):
+            if func:
+                _orig_func = func
+                func = lambda i: _orig_func(i) == value
+            else:
+                func = lambda i: i == value
+
+        if not func:
+            func = default_func
+
+        if Narg.is_narg(func):
+            func = None
+
+        return filter(func, iterable)
 
     @classmethod
-    def __parse_func__(cls, *args, **kwargs):
-        func = (kwargs.get(&#39;pred&#39;, None) or
-                next(filter(lambda a: inspect.isfunction(a) or inspect.ismethod(a), args), None))
-        return func</code></pre>
+    def __getattr_by_key__(cls, obj, key):
+        if isinstance(obj, Iterable) and key in obj:
+            return obj[key]
+        else:
+            return getattr(obj, key)
+
+    @classmethod
+    def __always_true__(cls, *args, **kwargs):
+        return True</code></pre>
 </details>
 </section>
 <section>
@@ -143,257 +274,515 @@ class Utils:
 </summary>
 <pre><code class="python">class Utils:
     @classmethod
-    def find(cls, iterable: iter, *args, **kwargs) -&gt; t.Any:
+    def find(cls,
+             iterable: iter,
+             *args,
+             func: t.Callable = none,
+             default: t.Any = None,
+             key: str = none,
+             value: t.Any = none) -&gt; t.Any:
         &#34;&#34;&#34;
-        Returns the first item in the iterable returning True or a default.
+        Gets the first item in the iterable returning True.
         Args:
-            iterable:
-            *args:
-                Predicate is the first callable arg.
-                Default value is the first arg that is not the predicate, otherwise None.
+            iterable: Items.
+            func: Predicate. Or the first positional arg.
+            default: Value to return if no items match the predicate.
+            key: Name of the attribute to check.
+            value: Value to match.
 
         Returns: Object
         &#34;&#34;&#34;
-        pred = cls.__parse_func__(*args, **kwargs)
-        default = kwargs.get(&#39;default&#39;, None) or next(filter(lambda a: a != pred, args), None)
-        return next(filter(pred, iterable), default)
+        return next(cls.__build_filter__(iterable, *args, func=func, key=key, value=value), default)
 
     @classmethod
-    def map(cls, *args, **kwargs) -&gt; list[t.Any]:
+    def select(cls,
+               iterable: iter,
+               *args,
+               func: t.Callable = none,
+               key: str = none,
+               value: t.Any = none) -&gt; list[t.Any]:
         &#34;&#34;&#34;
-        Returns all the items in the iterable(s) mapped to from the function.
+        Gets all the items in the iterable returning True.
         Args:
-            iterable(s):
-            *args:
-                Function is the first callable arg.
-                Default value is the first arg that is not the function, otherwise [].
+            iterable: Items.
+            func: Predicate. Or the first positional arg.
+            key: Name of the attribute to check.
+            value: Value to match.
 
         Returns: List
         &#34;&#34;&#34;
-        func = cls.__parse_func__(*args, **kwargs)
-        iterables = kwargs.get(&#39;iterables&#39;, None) or cls.select(args, lambda a: a != func and isinstance(a, t.Iterable))
+        return list(cls.__build_filter__(iterable, *args, func=func, key=key, value=value))
+
+    @classmethod
+    def first(cls,
+              iterable: iter,
+              *args,
+              func: t.Callable = none,
+              default: t.Any = None,
+              key: str = none,
+              value: t.Any = none) -&gt; t.Any:
+        &#34;&#34;&#34;
+        Gets the first item in the iterable, or the first item returning True.
+        Args:
+            iterable: Items.
+            func: Predicate. Or the first positional arg.
+            default: Value to return if no items match the predicate.
+            key: Name of the attribute to check.
+            value: Value to match.
+
+        Returns: Object
+        &#34;&#34;&#34;
+        return next(
+            cls.__build_filter__(iterable, *args,
+                                 func=func, key=key, value=value, default_func=cls.__always_true__),
+            default)
+
+    @classmethod
+    def last(cls,
+             iterable: iter,
+             *args,
+             func: t.Callable = none,
+             default: t.Any = None,
+             key: str = none,
+             value: t.Any = none) -&gt; t.Any:
+        &#34;&#34;&#34;
+        Gets the last item in the iterable, or the last item returning True.
+        Args:
+            iterable: Items.
+            func: Predicate. Or the first positional arg.
+            default: Value to return if no items match the predicate.
+            key: Name of the attribute to check.
+            value: Value to match
+
+        Returns: Object
+        &#34;&#34;&#34;
+        reversed_iterable = iterable and iterable[::-1]
+        return next(
+            cls.__build_filter__(reversed_iterable, *args,
+                                 func=func, key=key, value=value, default_func=cls.__always_true__),
+            default)
+
+    @classmethod
+    def map(cls,
+            *iterables,
+            func: t.Callable = none,
+            key: str = none) -&gt; list[t.Any]:
+        &#34;&#34;&#34;
+        Gets all the items in the iterable(s) mapped.
+        Args:
+            func: Callable to transform each item. Or the last positional arg.
+            key: Name of the attribute to map.
+            iterables: List of iterables.
+
+        Returns: List
+        &#34;&#34;&#34;
+        if not func and len(iterables) &gt; 1:
+            func = iterables[-1]
+            iterables = iterables[:-1]
+
+        if Narg.is_set(key):
+            if func:
+                _orig_func = func
+                func = lambda i: _orig_func(cls.__getattr_by_key__(i, key))
+            else:
+                func = lambda i: cls.__getattr_by_key__(i, key)
+
+        if Narg.is_narg(func):
+            func = None
+
         return list(builtins.map(func, *iterables))
 
     @classmethod
-    def select(cls, iterable: iter, *args) -&gt; list[t.Any]:
+    def unique(cls,
+               iterable: iter,
+               *args,
+               func: t.Callable = none,
+               key: str = none) -&gt; list[t.Any]:
         &#34;&#34;&#34;
-        Returns all the items in the iterable returning True or a default.
+        Gets a list of unique items in the iterable.
         Args:
-            iterable:
-            *args:
-                Predicate is the first callable arg.
-                Default value is the first arg that is not the predicate, otherwise [].
-
-        Returns: List
-        &#34;&#34;&#34;
-        pred = cls.__parse_func__(*args)
-        default = next(filter(lambda a: a != pred, args), [])
-        return list(filter(pred, iterable)) or default
-
-    @classmethod
-    def first(cls, iterable: iter, *args) -&gt; t.Any:
-        &#34;&#34;&#34;
-        Returns the first item in the iterable or a default.
-        Args:
-            iterable:
-            *args:
-                Predicate is the first callable arg.
-                Default value is the first arg that is not the predicate, otherwise None.
+            iterable: Items.
+            func: Callable to return a value to check for uniqueness. Or the first positional arg.
+            key: Name of the attribute to get the value from to check for uniqueness.
 
         Returns: Object
         &#34;&#34;&#34;
-        if len(args):
-            return cls.find(iterable, *args)
-        else:
-            return iterable[0] if len(iterable) else None
+        if not func and len(args):
+            func = args[0]
+
+        if Narg.is_set(key):
+            if func:
+                _orig_func = func
+                func = lambda i: _orig_func(cls.__getattr_by_key__(i, key))
+            else:
+                func = lambda i: cls.__getattr_by_key__(i, key)
+
+        results = []
+        uniq_values = []
+        for item in iterable:
+            if func:
+                value = func(item)
+                if operator.countOf(uniq_values, value) == 0:
+                    results.append(item)
+                    uniq_values.append(value)
+            else:
+                if operator.countOf(results, item) == 0:
+                    results.append(item)
+
+        return results
 
     @classmethod
-    def last(cls, iterable: iter, *args) -&gt; t.Any:
+    def __build_filter__(cls,
+                         iterable: iter,
+                         *args,
+                         func: t.Callable = none,
+                         default_func: t.Callable = None,
+                         key: str = none,
+                         value: t.Any = none) -&gt; t.Any:
         &#34;&#34;&#34;
-        Returns the last item in the iterable or a default.
+        Builds an iterable filter.
         Args:
-            iterable:
-            *args:
-                Predicate is the first callable arg.
-                Default value is the first arg that is not the predicate, otherwise None.
+            iterable: Items.
+            func: Predicate. Or the first positional arg.
+            default_func: Predicate to use if func is not set or found.
+            key: Name of the attribute to check.
+            value: Value to match.
 
         Returns: Object
         &#34;&#34;&#34;
-        reversed_iterable = iterable[::-1]
-        if len(args):
-            return cls.first(reversed_iterable, *args)
-        else:
-            return reversed_iterable[0] if len(reversed_iterable) else None
+        if not func and len(args):
+            func = args[0]
+
+        if Narg.is_set(key, value):
+            if func:
+                _orig_func = func
+                func = lambda i: _orig_func(cls.__getattr_by_key__(i, key)) == value
+            else:
+                func = lambda i: cls.__getattr_by_key__(i, key) == value
+        elif Narg.is_set(key):
+            if func:
+                _orig_func = func
+                func = lambda i: _orig_func(cls.__getattr_by_key__(i, key))
+            else:
+                func = lambda i: cls.__getattr_by_key__(i, key)
+        elif Narg.is_set(value):
+            if func:
+                _orig_func = func
+                func = lambda i: _orig_func(i) == value
+            else:
+                func = lambda i: i == value
+
+        if not func:
+            func = default_func
+
+        if Narg.is_narg(func):
+            func = None
+
+        return filter(func, iterable)
 
     @classmethod
-    def __parse_func__(cls, *args, **kwargs):
-        func = (kwargs.get(&#39;pred&#39;, None) or
-                next(filter(lambda a: inspect.isfunction(a) or inspect.ismethod(a), args), None))
-        return func</code></pre>
+    def __getattr_by_key__(cls, obj, key):
+        if isinstance(obj, Iterable) and key in obj:
+            return obj[key]
+        else:
+            return getattr(obj, key)
+
+    @classmethod
+    def __always_true__(cls, *args, **kwargs):
+        return True</code></pre>
 </details>
 <h3>Static methods</h3>
 <dl>
 <dt id="synapsis.core.utils.Utils.find"><code class="name flex">
-<span>def <span class="ident">find</span></span>(<span>iterable: iter, *args, **kwargs) ‑> Any</span>
+<span>def <span class="ident">find</span></span>(<span>iterable: iter, *args, func: t.Callable = &lt;synapsis.core.narg.Narg object&gt;, default: t.Any = None, key: str = &lt;synapsis.core.narg.Narg object&gt;, value: t.Any = &lt;synapsis.core.narg.Narg object&gt;) ‑> Any</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Returns the first item in the iterable returning True or a default.</p>
+<div class="desc"><p>Gets the first item in the iterable returning True.</p>
 <h2 id="args">Args</h2>
-<p>iterable:
-*args:
-Predicate is the first callable arg.
-Default value is the first arg that is not the predicate, otherwise None.
-Returns: Object</p></div>
+<dl>
+<dt><strong><code>iterable</code></strong></dt>
+<dd>Items.</dd>
+<dt><strong><code>func</code></strong></dt>
+<dd>Predicate. Or the first positional arg.</dd>
+<dt><strong><code>default</code></strong></dt>
+<dd>Value to return if no items match the predicate.</dd>
+<dt><strong><code>key</code></strong></dt>
+<dd>Name of the attribute to check.</dd>
+<dt><strong><code>value</code></strong></dt>
+<dd>Value to match.</dd>
+</dl>
+<p>Returns: Object</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def find(cls, iterable: iter, *args, **kwargs) -&gt; t.Any:
+def find(cls,
+         iterable: iter,
+         *args,
+         func: t.Callable = none,
+         default: t.Any = None,
+         key: str = none,
+         value: t.Any = none) -&gt; t.Any:
     &#34;&#34;&#34;
-    Returns the first item in the iterable returning True or a default.
+    Gets the first item in the iterable returning True.
     Args:
-        iterable:
-        *args:
-            Predicate is the first callable arg.
-            Default value is the first arg that is not the predicate, otherwise None.
+        iterable: Items.
+        func: Predicate. Or the first positional arg.
+        default: Value to return if no items match the predicate.
+        key: Name of the attribute to check.
+        value: Value to match.
 
     Returns: Object
     &#34;&#34;&#34;
-    pred = cls.__parse_func__(*args, **kwargs)
-    default = kwargs.get(&#39;default&#39;, None) or next(filter(lambda a: a != pred, args), None)
-    return next(filter(pred, iterable), default)</code></pre>
+    return next(cls.__build_filter__(iterable, *args, func=func, key=key, value=value), default)</code></pre>
 </details>
 </dd>
 <dt id="synapsis.core.utils.Utils.first"><code class="name flex">
-<span>def <span class="ident">first</span></span>(<span>iterable: iter, *args) ‑> Any</span>
+<span>def <span class="ident">first</span></span>(<span>iterable: iter, *args, func: t.Callable = &lt;synapsis.core.narg.Narg object&gt;, default: t.Any = None, key: str = &lt;synapsis.core.narg.Narg object&gt;, value: t.Any = &lt;synapsis.core.narg.Narg object&gt;) ‑> Any</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Returns the first item in the iterable or a default.</p>
+<div class="desc"><p>Gets the first item in the iterable, or the first item returning True.</p>
 <h2 id="args">Args</h2>
-<p>iterable:
-*args:
-Predicate is the first callable arg.
-Default value is the first arg that is not the predicate, otherwise None.
-Returns: Object</p></div>
+<dl>
+<dt><strong><code>iterable</code></strong></dt>
+<dd>Items.</dd>
+<dt><strong><code>func</code></strong></dt>
+<dd>Predicate. Or the first positional arg.</dd>
+<dt><strong><code>default</code></strong></dt>
+<dd>Value to return if no items match the predicate.</dd>
+<dt><strong><code>key</code></strong></dt>
+<dd>Name of the attribute to check.</dd>
+<dt><strong><code>value</code></strong></dt>
+<dd>Value to match.</dd>
+</dl>
+<p>Returns: Object</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def first(cls, iterable: iter, *args) -&gt; t.Any:
+def first(cls,
+          iterable: iter,
+          *args,
+          func: t.Callable = none,
+          default: t.Any = None,
+          key: str = none,
+          value: t.Any = none) -&gt; t.Any:
     &#34;&#34;&#34;
-    Returns the first item in the iterable or a default.
+    Gets the first item in the iterable, or the first item returning True.
     Args:
-        iterable:
-        *args:
-            Predicate is the first callable arg.
-            Default value is the first arg that is not the predicate, otherwise None.
+        iterable: Items.
+        func: Predicate. Or the first positional arg.
+        default: Value to return if no items match the predicate.
+        key: Name of the attribute to check.
+        value: Value to match.
 
     Returns: Object
     &#34;&#34;&#34;
-    if len(args):
-        return cls.find(iterable, *args)
-    else:
-        return iterable[0] if len(iterable) else None</code></pre>
+    return next(
+        cls.__build_filter__(iterable, *args,
+                             func=func, key=key, value=value, default_func=cls.__always_true__),
+        default)</code></pre>
 </details>
 </dd>
 <dt id="synapsis.core.utils.Utils.last"><code class="name flex">
-<span>def <span class="ident">last</span></span>(<span>iterable: iter, *args) ‑> Any</span>
+<span>def <span class="ident">last</span></span>(<span>iterable: iter, *args, func: t.Callable = &lt;synapsis.core.narg.Narg object&gt;, default: t.Any = None, key: str = &lt;synapsis.core.narg.Narg object&gt;, value: t.Any = &lt;synapsis.core.narg.Narg object&gt;) ‑> Any</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Returns the last item in the iterable or a default.</p>
+<div class="desc"><p>Gets the last item in the iterable, or the last item returning True.</p>
 <h2 id="args">Args</h2>
-<p>iterable:
-*args:
-Predicate is the first callable arg.
-Default value is the first arg that is not the predicate, otherwise None.
-Returns: Object</p></div>
+<dl>
+<dt><strong><code>iterable</code></strong></dt>
+<dd>Items.</dd>
+<dt><strong><code>func</code></strong></dt>
+<dd>Predicate. Or the first positional arg.</dd>
+<dt><strong><code>default</code></strong></dt>
+<dd>Value to return if no items match the predicate.</dd>
+<dt><strong><code>key</code></strong></dt>
+<dd>Name of the attribute to check.</dd>
+<dt><strong><code>value</code></strong></dt>
+<dd>Value to match</dd>
+</dl>
+<p>Returns: Object</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def last(cls, iterable: iter, *args) -&gt; t.Any:
+def last(cls,
+         iterable: iter,
+         *args,
+         func: t.Callable = none,
+         default: t.Any = None,
+         key: str = none,
+         value: t.Any = none) -&gt; t.Any:
     &#34;&#34;&#34;
-    Returns the last item in the iterable or a default.
+    Gets the last item in the iterable, or the last item returning True.
     Args:
-        iterable:
-        *args:
-            Predicate is the first callable arg.
-            Default value is the first arg that is not the predicate, otherwise None.
+        iterable: Items.
+        func: Predicate. Or the first positional arg.
+        default: Value to return if no items match the predicate.
+        key: Name of the attribute to check.
+        value: Value to match
 
     Returns: Object
     &#34;&#34;&#34;
-    reversed_iterable = iterable[::-1]
-    if len(args):
-        return cls.first(reversed_iterable, *args)
-    else:
-        return reversed_iterable[0] if len(reversed_iterable) else None</code></pre>
+    reversed_iterable = iterable and iterable[::-1]
+    return next(
+        cls.__build_filter__(reversed_iterable, *args,
+                             func=func, key=key, value=value, default_func=cls.__always_true__),
+        default)</code></pre>
 </details>
 </dd>
 <dt id="synapsis.core.utils.Utils.map"><code class="name flex">
-<span>def <span class="ident">map</span></span>(<span>*args, **kwargs) ‑> list[typing.Any]</span>
+<span>def <span class="ident">map</span></span>(<span>*iterables, func: t.Callable = &lt;synapsis.core.narg.Narg object&gt;, key: str = &lt;synapsis.core.narg.Narg object&gt;) ‑> list[typing.Any]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Returns all the items in the iterable(s) mapped to from the function.</p>
+<div class="desc"><p>Gets all the items in the iterable(s) mapped.</p>
 <h2 id="args">Args</h2>
-<p>iterable(s):
-*args:
-Function is the first callable arg.
-Default value is the first arg that is not the function, otherwise [].
-Returns: List</p></div>
+<dl>
+<dt><strong><code>func</code></strong></dt>
+<dd>Callable to transform each item. Or the last positional arg.</dd>
+<dt><strong><code>key</code></strong></dt>
+<dd>Name of the attribute to map.</dd>
+<dt><strong><code>iterables</code></strong></dt>
+<dd>List of iterables.</dd>
+</dl>
+<p>Returns: List</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def map(cls, *args, **kwargs) -&gt; list[t.Any]:
+def map(cls,
+        *iterables,
+        func: t.Callable = none,
+        key: str = none) -&gt; list[t.Any]:
     &#34;&#34;&#34;
-    Returns all the items in the iterable(s) mapped to from the function.
+    Gets all the items in the iterable(s) mapped.
     Args:
-        iterable(s):
-        *args:
-            Function is the first callable arg.
-            Default value is the first arg that is not the function, otherwise [].
+        func: Callable to transform each item. Or the last positional arg.
+        key: Name of the attribute to map.
+        iterables: List of iterables.
 
     Returns: List
     &#34;&#34;&#34;
-    func = cls.__parse_func__(*args, **kwargs)
-    iterables = kwargs.get(&#39;iterables&#39;, None) or cls.select(args, lambda a: a != func and isinstance(a, t.Iterable))
+    if not func and len(iterables) &gt; 1:
+        func = iterables[-1]
+        iterables = iterables[:-1]
+
+    if Narg.is_set(key):
+        if func:
+            _orig_func = func
+            func = lambda i: _orig_func(cls.__getattr_by_key__(i, key))
+        else:
+            func = lambda i: cls.__getattr_by_key__(i, key)
+
+    if Narg.is_narg(func):
+        func = None
+
     return list(builtins.map(func, *iterables))</code></pre>
 </details>
 </dd>
 <dt id="synapsis.core.utils.Utils.select"><code class="name flex">
-<span>def <span class="ident">select</span></span>(<span>iterable: iter, *args) ‑> list[typing.Any]</span>
+<span>def <span class="ident">select</span></span>(<span>iterable: iter, *args, func: t.Callable = &lt;synapsis.core.narg.Narg object&gt;, key: str = &lt;synapsis.core.narg.Narg object&gt;, value: t.Any = &lt;synapsis.core.narg.Narg object&gt;) ‑> list[typing.Any]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Returns all the items in the iterable returning True or a default.</p>
+<div class="desc"><p>Gets all the items in the iterable returning True.</p>
 <h2 id="args">Args</h2>
-<p>iterable:
-*args:
-Predicate is the first callable arg.
-Default value is the first arg that is not the predicate, otherwise [].
-Returns: List</p></div>
+<dl>
+<dt><strong><code>iterable</code></strong></dt>
+<dd>Items.</dd>
+<dt><strong><code>func</code></strong></dt>
+<dd>Predicate. Or the first positional arg.</dd>
+<dt><strong><code>key</code></strong></dt>
+<dd>Name of the attribute to check.</dd>
+<dt><strong><code>value</code></strong></dt>
+<dd>Value to match.</dd>
+</dl>
+<p>Returns: List</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">@classmethod
-def select(cls, iterable: iter, *args) -&gt; list[t.Any]:
+def select(cls,
+           iterable: iter,
+           *args,
+           func: t.Callable = none,
+           key: str = none,
+           value: t.Any = none) -&gt; list[t.Any]:
     &#34;&#34;&#34;
-    Returns all the items in the iterable returning True or a default.
+    Gets all the items in the iterable returning True.
     Args:
-        iterable:
-        *args:
-            Predicate is the first callable arg.
-            Default value is the first arg that is not the predicate, otherwise [].
+        iterable: Items.
+        func: Predicate. Or the first positional arg.
+        key: Name of the attribute to check.
+        value: Value to match.
 
     Returns: List
     &#34;&#34;&#34;
-    pred = cls.__parse_func__(*args)
-    default = next(filter(lambda a: a != pred, args), [])
-    return list(filter(pred, iterable)) or default</code></pre>
+    return list(cls.__build_filter__(iterable, *args, func=func, key=key, value=value))</code></pre>
+</details>
+</dd>
+<dt id="synapsis.core.utils.Utils.unique"><code class="name flex">
+<span>def <span class="ident">unique</span></span>(<span>iterable: iter, *args, func: t.Callable = &lt;synapsis.core.narg.Narg object&gt;, key: str = &lt;synapsis.core.narg.Narg object&gt;) ‑> list[typing.Any]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets a list of unique items in the iterable.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>iterable</code></strong></dt>
+<dd>Items.</dd>
+<dt><strong><code>func</code></strong></dt>
+<dd>Callable to return a value to check for uniqueness. Or the first positional arg.</dd>
+<dt><strong><code>key</code></strong></dt>
+<dd>Name of the attribute to get the value from to check for uniqueness.</dd>
+</dl>
+<p>Returns: Object</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@classmethod
+def unique(cls,
+           iterable: iter,
+           *args,
+           func: t.Callable = none,
+           key: str = none) -&gt; list[t.Any]:
+    &#34;&#34;&#34;
+    Gets a list of unique items in the iterable.
+    Args:
+        iterable: Items.
+        func: Callable to return a value to check for uniqueness. Or the first positional arg.
+        key: Name of the attribute to get the value from to check for uniqueness.
+
+    Returns: Object
+    &#34;&#34;&#34;
+    if not func and len(args):
+        func = args[0]
+
+    if Narg.is_set(key):
+        if func:
+            _orig_func = func
+            func = lambda i: _orig_func(cls.__getattr_by_key__(i, key))
+        else:
+            func = lambda i: cls.__getattr_by_key__(i, key)
+
+    results = []
+    uniq_values = []
+    for item in iterable:
+        if func:
+            value = func(item)
+            if operator.countOf(uniq_values, value) == 0:
+                results.append(item)
+                uniq_values.append(value)
+        else:
+            if operator.countOf(results, item) == 0:
+                results.append(item)
+
+    return results</code></pre>
 </details>
 </dd>
 </dl>
@@ -416,12 +805,13 @@ def select(cls, iterable: iter, *args) -&gt; list[t.Any]:
 <ul>
 <li>
 <h4><code><a title="synapsis.core.utils.Utils" href="#synapsis.core.utils.Utils">Utils</a></code></h4>
-<ul class="">
+<ul class="two-column">
 <li><code><a title="synapsis.core.utils.Utils.find" href="#synapsis.core.utils.Utils.find">find</a></code></li>
 <li><code><a title="synapsis.core.utils.Utils.first" href="#synapsis.core.utils.Utils.first">first</a></code></li>
 <li><code><a title="synapsis.core.utils.Utils.last" href="#synapsis.core.utils.Utils.last">last</a></code></li>
 <li><code><a title="synapsis.core.utils.Utils.map" href="#synapsis.core.utils.Utils.map">map</a></code></li>
 <li><code><a title="synapsis.core.utils.Utils.select" href="#synapsis.core.utils.Utils.select">select</a></code></li>
+<li><code><a title="synapsis.core.utils.Utils.unique" href="#synapsis.core.utils.Utils.unique">unique</a></code></li>
 </ul>
 </li>
 </ul>
