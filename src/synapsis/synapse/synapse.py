@@ -1,6 +1,7 @@
 from __future__ import annotations
 import typing as t
 import os
+import tempfile
 import synapseclient
 from synapseclient.core.exceptions import SynapseError
 from ..core.exceptions import LoginError
@@ -31,6 +32,12 @@ class Synapse(synapseclient.Synapse):
     def __build_init_args__(self):
         init_args = {**Synapse.__SYNAPSE_INIT_ARGS_DEFAULT__, **self.__synapse_init_args__}
         self.__from_arg_or_env__(init_args, 'configPath', 'SYNAPSE_CONFIG_FILE')
+
+        if 'cache_root_dir' not in init_args:
+            cache_root_dir = os.path.expandvars(os.path.expanduser((synapseclient.core.cache.CACHE_ROOT_DIR)))
+            if not os.access(cache_root_dir, os.W_OK):
+                init_args['cache_root_dir'] = tempfile.mkdtemp(prefix='synapseCache-')
+
         return init_args
 
     def __build_login_args__(self):

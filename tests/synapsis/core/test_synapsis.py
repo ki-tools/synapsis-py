@@ -41,7 +41,8 @@ def assert_is_logged_out():
         assert Synapsis.Synapse._is_logged_in() is False
 
 
-def test_configure(syn_test_credentials, syn_test_auth_token, synapse_test_config, clear_env_vars, set_env_vars):
+def test_configure(synapse_test_helper, syn_test_credentials, syn_test_auth_token, synapse_test_config, clear_env_vars,
+                   set_env_vars):
     test_username, test_password = syn_test_credentials
 
     def reset():
@@ -100,9 +101,11 @@ def test_configure(syn_test_credentials, syn_test_auth_token, synapse_test_confi
     reset()
     config_path = synapse_test_config(username=test_username, password=test_password)
     assert_login(synapse_args={'configPath': config_path})
+    assert Synapsis.Synapse.configPath == config_path
     reset()
     set_env_vars(config_file=config_path)
     assert_login()
+    assert Synapsis.Synapse.configPath == config_path
 
     # Config file User/Pass/Auth Token.
     reset()

@@ -2,6 +2,7 @@ import pytest
 import os
 import synapseclient
 from synapsis import Synapsis
+from synapsis.core.exceptions import SynapsisError
 import synapseclient as syn
 
 
@@ -267,3 +268,23 @@ async def test_find_data_file_handle(synapse_test_helper, syn_file):
         assert Synapsis.Utils.find_data_file_handle(
             source, data_file_handle_id=expected_file_handle_id
         )['id'] == expected_file_handle_id
+
+
+async def test_copy_file_handles_batch(synapse_test_helper, syn_file, mocker):
+    from_file_handle = syn_file['_file_handle']
+    response = Synapsis.Utils.copy_file_handles_batch([from_file_handle['id']], ["FileEntity"], [syn_file.id])
+    new_file_handle = response[0]['newFileHandle']
+    assert new_file_handle
+    synapse_test_helper.dispose_of(new_file_handle)
+
+    mocker.patch.object(Synapsis.Synapse, 'restPOST', return_value={
+        'copyResults': [
+            {
+                'newFileHandle': None,
+                'originalFileHandleId': '000',
+                'failureCode': 'NOT_FOUND'
+            }
+        ]
+    })
+    with pytest.raises(SynapsisError, match='Error copying filehandle'):
+        Synapsis.Utils.copy_file_handles_batch([from_file_handle['id']], ["FileEntity"], [syn_file.id])

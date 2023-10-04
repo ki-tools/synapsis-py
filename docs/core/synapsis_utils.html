@@ -182,10 +182,19 @@ class SynapsisUtils(object):
             }
             copy_file_handle_request[&#34;copyRequests&#34;].append(file_item)
 
-        copied_file_handles = self.__synapse__.restPOST(&#39;/filehandles/copy&#39;,
-                                                        body=json.dumps(copy_file_handle_request),
-                                                        endpoint=self.__synapse__.fileHandleEndpoint)
-        return copied_file_handles.get(&#34;copyResults&#34;)
+        copy_response = self.__synapse__.restPOST(&#39;/filehandles/copy&#39;,
+                                                  body=json.dumps(copy_file_handle_request),
+                                                  endpoint=self.__synapse__.fileHandleEndpoint)
+        copy_results = copy_response.get(&#34;copyResults&#34;)
+        for copy_result in copy_results:
+            if copy_result.get(&#34;failureCode&#34;, None) is not None:
+                error = &#39;Error copying filehandle: {0}, dataFileHandleId: {1}&#39;.format(
+                    copy_result[&#34;failureCode&#34;],
+                    copy_result[&#39;originalFileHandleId&#39;]
+                )
+                raise SynapsisError(error)
+
+        return copy_results
 
     def get_project(self, entity: synapseclient.Entity | str) -&gt; synapseclient.Project:
         &#34;&#34;&#34;
@@ -604,10 +613,19 @@ class SynapsisUtils(object):
             }
             copy_file_handle_request[&#34;copyRequests&#34;].append(file_item)
 
-        copied_file_handles = self.__synapse__.restPOST(&#39;/filehandles/copy&#39;,
-                                                        body=json.dumps(copy_file_handle_request),
-                                                        endpoint=self.__synapse__.fileHandleEndpoint)
-        return copied_file_handles.get(&#34;copyResults&#34;)
+        copy_response = self.__synapse__.restPOST(&#39;/filehandles/copy&#39;,
+                                                  body=json.dumps(copy_file_handle_request),
+                                                  endpoint=self.__synapse__.fileHandleEndpoint)
+        copy_results = copy_response.get(&#34;copyResults&#34;)
+        for copy_result in copy_results:
+            if copy_result.get(&#34;failureCode&#34;, None) is not None:
+                error = &#39;Error copying filehandle: {0}, dataFileHandleId: {1}&#39;.format(
+                    copy_result[&#34;failureCode&#34;],
+                    copy_result[&#39;originalFileHandleId&#39;]
+                )
+                raise SynapsisError(error)
+
+        return copy_results
 
     def get_project(self, entity: synapseclient.Entity | str) -&gt; synapseclient.Project:
         &#34;&#34;&#34;
@@ -906,10 +924,19 @@ class SynapsisUtils(object):
         }
         copy_file_handle_request[&#34;copyRequests&#34;].append(file_item)
 
-    copied_file_handles = self.__synapse__.restPOST(&#39;/filehandles/copy&#39;,
-                                                    body=json.dumps(copy_file_handle_request),
-                                                    endpoint=self.__synapse__.fileHandleEndpoint)
-    return copied_file_handles.get(&#34;copyResults&#34;)</code></pre>
+    copy_response = self.__synapse__.restPOST(&#39;/filehandles/copy&#39;,
+                                              body=json.dumps(copy_file_handle_request),
+                                              endpoint=self.__synapse__.fileHandleEndpoint)
+    copy_results = copy_response.get(&#34;copyResults&#34;)
+    for copy_result in copy_results:
+        if copy_result.get(&#34;failureCode&#34;, None) is not None:
+            error = &#39;Error copying filehandle: {0}, dataFileHandleId: {1}&#39;.format(
+                copy_result[&#34;failureCode&#34;],
+                copy_result[&#39;originalFileHandleId&#39;]
+            )
+            raise SynapsisError(error)
+
+    return copy_results</code></pre>
 </details>
 </dd>
 <dt id="synapsis.core.synapsis_utils.SynapsisUtils.delete_skip_trash"><code class="name flex">

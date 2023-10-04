@@ -1,5 +1,15 @@
 # Change Log
 
+## Version 0.0.5 (2023-10-04)
+
+### Changes
+
+- Synapsis.Utils.copy_file_handles_batch(...) now checks for errors and raises them.
+- Ensure the `synapseclient.core.cache.CACHE_ROOT_DIR` is writable to the user, otherwise use a temp directory. This can
+  happen when running on AWS Lambda.
+
+### Changes
+
 ## Version 0.0.4 (2023-10-03)
 
 ### Changes

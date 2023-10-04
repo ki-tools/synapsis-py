@@ -29,6 +29,7 @@
 <pre><code class="python">from __future__ import annotations
 import typing as t
 import os
+import tempfile
 import synapseclient
 from synapseclient.core.exceptions import SynapseError
 from ..core.exceptions import LoginError
@@ -59,6 +60,12 @@ class Synapse(synapseclient.Synapse):
     def __build_init_args__(self):
         init_args = {**Synapse.__SYNAPSE_INIT_ARGS_DEFAULT__, **self.__synapse_init_args__}
         self.__from_arg_or_env__(init_args, &#39;configPath&#39;, &#39;SYNAPSE_CONFIG_FILE&#39;)
+
+        if &#39;cache_root_dir&#39; not in init_args:
+            cache_root_dir = os.path.expandvars(os.path.expanduser((synapseclient.core.cache.CACHE_ROOT_DIR)))
+            if not os.access(cache_root_dir, os.W_OK):
+                init_args[&#39;cache_root_dir&#39;] = tempfile.mkdtemp(prefix=&#39;synapseCache-&#39;)
+
         return init_args
 
     def __build_login_args__(self):
@@ -182,6 +189,12 @@ syn = synapseclient.Synapse()
     def __build_init_args__(self):
         init_args = {**Synapse.__SYNAPSE_INIT_ARGS_DEFAULT__, **self.__synapse_init_args__}
         self.__from_arg_or_env__(init_args, &#39;configPath&#39;, &#39;SYNAPSE_CONFIG_FILE&#39;)
+
+        if &#39;cache_root_dir&#39; not in init_args:
+            cache_root_dir = os.path.expandvars(os.path.expanduser((synapseclient.core.cache.CACHE_ROOT_DIR)))
+            if not os.access(cache_root_dir, os.W_OK):
+                init_args[&#39;cache_root_dir&#39;] = tempfile.mkdtemp(prefix=&#39;synapseCache-&#39;)
+
         return init_args
 
     def __build_login_args__(self):

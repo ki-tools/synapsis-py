@@ -154,10 +154,19 @@ class SynapsisUtils(object):
             }
             copy_file_handle_request["copyRequests"].append(file_item)
 
-        copied_file_handles = self.__synapse__.restPOST('/filehandles/copy',
-                                                        body=json.dumps(copy_file_handle_request),
-                                                        endpoint=self.__synapse__.fileHandleEndpoint)
-        return copied_file_handles.get("copyResults")
+        copy_response = self.__synapse__.restPOST('/filehandles/copy',
+                                                  body=json.dumps(copy_file_handle_request),
+                                                  endpoint=self.__synapse__.fileHandleEndpoint)
+        copy_results = copy_response.get("copyResults")
+        for copy_result in copy_results:
+            if copy_result.get("failureCode", None) is not None:
+                error = 'Error copying filehandle: {0}, dataFileHandleId: {1}'.format(
+                    copy_result["failureCode"],
+                    copy_result['originalFileHandleId']
+                )
+                raise SynapsisError(error)
+
+        return copy_results
 
     def get_project(self, entity: synapseclient.Entity | str) -> synapseclient.Project:
         """
