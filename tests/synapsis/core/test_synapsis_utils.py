@@ -96,7 +96,7 @@ async def test_delete_skip_trash(synapse_test_helper):
     assert 'is in trash can' in e.value.response.text or 'does not exist' in e.value.response.text
 
 
-async def test_set_entity_permission(synapse_test_helper, syn_project, other_test_user, has_permission_to):
+async def test_set_entity_permission(synapse_test_helper, syn_project, syn_folder, other_test_user, has_permission_to):
     team = synapse_test_helper.create_team()
 
     # Add team permission.
@@ -122,6 +122,13 @@ async def test_set_entity_permission(synapse_test_helper, syn_project, other_tes
                                                             permission=Synapsis.Permissions.NO_PERMISSION)
     assert await Synapsis.Chain.Utils.set_entity_permission(syn_project, other_test_user, permission=None) is None
     assert has_permission_to(syn_project, other_test_user) is False
+
+    # set_permissions_kwargs
+    assert has_permission_to(syn_folder, other_test_user, Synapsis.Permissions.CAN_VIEW.access_types) is False
+    assert Synapsis.Utils.set_entity_permission(syn_folder, other_test_user,
+                                                permission=Synapsis.Permissions.CAN_VIEW,
+                                                warn_if_inherits=False)
+    assert has_permission_to(syn_folder, other_test_user, Synapsis.Permissions.CAN_VIEW.access_types) is True
 
 
 async def test_get_bundle(synapse_test_helper, syn_project):
@@ -235,15 +242,15 @@ async def test_invite_to_team(synapse_test_helper, other_test_user, is_invited_t
     assert is_manager_on_team(team, other_test_user)
 
 
-async def test_set_team_permission(synapse_test_helper, other_test_user_credentials, other_test_user,
+async def test_set_team_permission(synapse_test_helper, other_test_credentials, other_test_user,
                                    is_invited_to_team,
                                    is_manager_on_team, accept_team_invite):
-    other_username, other_password = other_test_user_credentials
-
     team = synapse_test_helper.create_team()
     Synapsis.Utils.invite_to_team(team, other_test_user)
     assert is_invited_to_team(team, other_test_user)
-    accept_team_invite(team, other_test_user, email=other_username, password=other_password)
+
+    auth_token = other_test_credentials[2]
+    accept_team_invite(team, other_test_user, authToken=auth_token)
     assert is_invited_to_team(team, other_test_user) is False
 
     assert is_manager_on_team(team, other_test_user) is False

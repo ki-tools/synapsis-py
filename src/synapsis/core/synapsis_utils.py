@@ -276,13 +276,16 @@ class SynapsisUtils(object):
     def set_entity_permission(self,
                               entity: synapseclient.Entity | str,
                               principal: synapseclient.UserProfile | synapseclient.Team | str | numbers.Number,
-                              permission: SynapsePermission | PermissionCode | AccessTypes | None) -> dict | None:
+                              permission: SynapsePermission | PermissionCode | AccessTypes | None,
+                              **set_permissions_kwargs: t.Optional[dict]
+                              ) -> dict | None:
         """
         Set the permission on an Entity for a user or team.
 
         :param entity: The Entity or ID to change the permission on.
         :param principal: The UserProfile, Team, or ID to change permission on.
         :param permission: SynapsePermission, SynapsePermission.code, list of permissions, or None to remove the permission.
+        :param set_permissions_kwargs: Keyword args for Synapse.setPermissions().
         :return: dict if permission updated else None.
         """
         permission = SynapsePermission.get(permission, SynapsePermission.NO_PERMISSION)
@@ -291,7 +294,8 @@ class SynapsisUtils(object):
         current_permission = self.get_entity_permission(entity, principal)
         if not permission.equals(current_permission):
             principal_id = self.id_of(principal)
-            return self.__synapse__.setPermissions(entity, principal_id, accessType=permission.access_types)
+            return self.__synapse__.setPermissions(entity, principal_id, accessType=permission.access_types,
+                                                   **set_permissions_kwargs)
         else:
             return None
 

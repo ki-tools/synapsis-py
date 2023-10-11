@@ -37,6 +37,9 @@ Synapsis.configure(synapse_args={'configPath': '~/.synapseConfigAdmin'})
 
 # Configure the Synapse client:
 Synapsis.configure(synapse_args={'cache_root_dir': '/tmp/synapse', 'silent': False})
+
+# Force the synapseclient to be single threaded:
+Synapsis.configure(synapse_args={'multi_threaded': False})
 ```
 
 ### Inject authentication params into argparse.

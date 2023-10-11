@@ -36,30 +36,52 @@ from ..core.exceptions import LoginError
 
 
 class Synapse(synapseclient.Synapse):
-    __SYNAPSE_INIT_ARGS_DEFAULT__: t.ClassVar[t.Final[dict]] = {&#39;skip_checks&#39;: True, &#39;silent&#39;: True}
-    __SYNAPSE_LOGIN_ARGS_DEFAULT__: t.ClassVar[t.Final[dict]] = {&#39;silent&#39;: True, &#39;rememberMe&#39;: False, &#39;forced&#39;: True}
+    __SYNAPSE_INIT_ARGS_DEFAULT__: t.ClassVar[t.Final[dict]] = {
+        &#39;skip_checks&#39;: True,
+        &#39;silent&#39;: True,
+        &#34;multi_threaded&#34;: True
+    }
+    __SYNAPSE_LOGIN_ARGS_DEFAULT__: t.ClassVar[t.Final[dict]] = {
+        &#39;silent&#39;: True,
+        &#39;rememberMe&#39;: False,
+        &#39;forced&#39;: True
+    }
+    __CONFIG_DEFAULT__: t.ClassVar[t.Final[dict]] = {
+        &#34;multi_threaded&#34;: __SYNAPSE_INIT_ARGS_DEFAULT__[&#39;multi_threaded&#39;]
+    }
     __synapse_init_args__: dict = {}
     __synapse_login_args__: dict = {}
+    __config__: dict = {}
 
     def __init__(self, **kwargs):
-        init_args = self.__build_init_args__()
-        init_args.update(kwargs)
-        super().__init__(**init_args)
+        self.__init_self__(init_kwargs=kwargs)
+
+    def __init_self__(self, init_kwargs: dict):
+        init_kwargs = self.__build_init_args__(init_kwargs=init_kwargs)
+        super().__init__(**init_kwargs)
+        self.multi_threaded = self.__config__.get(&#39;multi_threaded&#39;, self.__CONFIG_DEFAULT__[&#39;multi_threaded&#39;])
 
     def __configure__(self, synapse_args: dict = {}, **login_args: dict):
         &#34;&#34;&#34;Sets configuration options for the synapseclient and logs out.
 
-        :param synapse_args: Args for creating the synapsecleint.Synapse instance.
+        :param synapse_args: Args for creating the synapseclient.Synapse instance.
         :param login_args: Args for logging into Synapse.
         :return: None
         &#34;&#34;&#34;
         self.__synapse_init_args__ = synapse_args or {}
         self.__synapse_login_args__ = login_args or {}
+        self.__config__ = {}
         self.logout()
 
-    def __build_init_args__(self):
-        init_args = {**Synapse.__SYNAPSE_INIT_ARGS_DEFAULT__, **self.__synapse_init_args__}
+    def __build_init_args__(self, init_kwargs: dict):
+        init_args = {**Synapse.__SYNAPSE_INIT_ARGS_DEFAULT__, **init_kwargs}
         self.__from_arg_or_env__(init_args, &#39;configPath&#39;, &#39;SYNAPSE_CONFIG_FILE&#39;)
+
+        # Pull out custom Synapse args.
+        for attr, value in Synapse.__CONFIG_DEFAULT__.items():
+            if attr in init_args:
+                value = init_args.pop(attr)
+            self.__config__[attr] = value
 
         if &#39;cache_root_dir&#39; not in init_args:
             cache_root_dir = os.path.expandvars(os.path.expanduser((synapseclient.core.cache.CACHE_ROOT_DIR)))
@@ -94,9 +116,8 @@ class Synapse(synapseclient.Synapse):
         :return: None
         :raises LoginError: If logging into Synapse fails.
         &#34;&#34;&#34;
-        init_args = self.__build_init_args__()
+        self.__init_self__(init_kwargs=self.__synapse_init_args__)
         login_args = self.__build_login_args__()
-        super().__init__(**init_args)
         try:
             self.login(**login_args)
             if hooks:
@@ -165,30 +186,52 @@ syn = synapseclient.Synapse()
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class Synapse(synapseclient.Synapse):
-    __SYNAPSE_INIT_ARGS_DEFAULT__: t.ClassVar[t.Final[dict]] = {&#39;skip_checks&#39;: True, &#39;silent&#39;: True}
-    __SYNAPSE_LOGIN_ARGS_DEFAULT__: t.ClassVar[t.Final[dict]] = {&#39;silent&#39;: True, &#39;rememberMe&#39;: False, &#39;forced&#39;: True}
+    __SYNAPSE_INIT_ARGS_DEFAULT__: t.ClassVar[t.Final[dict]] = {
+        &#39;skip_checks&#39;: True,
+        &#39;silent&#39;: True,
+        &#34;multi_threaded&#34;: True
+    }
+    __SYNAPSE_LOGIN_ARGS_DEFAULT__: t.ClassVar[t.Final[dict]] = {
+        &#39;silent&#39;: True,
+        &#39;rememberMe&#39;: False,
+        &#39;forced&#39;: True
+    }
+    __CONFIG_DEFAULT__: t.ClassVar[t.Final[dict]] = {
+        &#34;multi_threaded&#34;: __SYNAPSE_INIT_ARGS_DEFAULT__[&#39;multi_threaded&#39;]
+    }
     __synapse_init_args__: dict = {}
     __synapse_login_args__: dict = {}
+    __config__: dict = {}
 
     def __init__(self, **kwargs):
-        init_args = self.__build_init_args__()
-        init_args.update(kwargs)
-        super().__init__(**init_args)
+        self.__init_self__(init_kwargs=kwargs)
+
+    def __init_self__(self, init_kwargs: dict):
+        init_kwargs = self.__build_init_args__(init_kwargs=init_kwargs)
+        super().__init__(**init_kwargs)
+        self.multi_threaded = self.__config__.get(&#39;multi_threaded&#39;, self.__CONFIG_DEFAULT__[&#39;multi_threaded&#39;])
 
     def __configure__(self, synapse_args: dict = {}, **login_args: dict):
         &#34;&#34;&#34;Sets configuration options for the synapseclient and logs out.
 
-        :param synapse_args: Args for creating the synapsecleint.Synapse instance.
+        :param synapse_args: Args for creating the synapseclient.Synapse instance.
         :param login_args: Args for logging into Synapse.
         :return: None
         &#34;&#34;&#34;
         self.__synapse_init_args__ = synapse_args or {}
         self.__synapse_login_args__ = login_args or {}
+        self.__config__ = {}
         self.logout()
 
-    def __build_init_args__(self):
-        init_args = {**Synapse.__SYNAPSE_INIT_ARGS_DEFAULT__, **self.__synapse_init_args__}
+    def __build_init_args__(self, init_kwargs: dict):
+        init_args = {**Synapse.__SYNAPSE_INIT_ARGS_DEFAULT__, **init_kwargs}
         self.__from_arg_or_env__(init_args, &#39;configPath&#39;, &#39;SYNAPSE_CONFIG_FILE&#39;)
+
+        # Pull out custom Synapse args.
+        for attr, value in Synapse.__CONFIG_DEFAULT__.items():
+            if attr in init_args:
+                value = init_args.pop(attr)
+            self.__config__[attr] = value
 
         if &#39;cache_root_dir&#39; not in init_args:
             cache_root_dir = os.path.expandvars(os.path.expanduser((synapseclient.core.cache.CACHE_ROOT_DIR)))
@@ -223,9 +266,8 @@ syn = synapseclient.Synapse()
         :return: None
         :raises LoginError: If logging into Synapse fails.
         &#34;&#34;&#34;
-        init_args = self.__build_init_args__()
+        self.__init_self__(init_kwargs=self.__synapse_init_args__)
         login_args = self.__build_login_args__()
-        super().__init__(**init_args)
         try:
             self.login(**login_args)
             if hooks:

@@ -10,7 +10,7 @@ from synapse_test_helper import SynapseTestHelper
 from synapsis import Synapsis
 from synapsis.core import Utils
 
-load_dotenv()
+load_dotenv(override=True)
 
 
 def _set_env_vars(username=None, password=None, auth_token=None, config_file=None):
@@ -46,58 +46,54 @@ def set_env_vars():
 
 
 @pytest.fixture(scope='session')
-def syn_test_credentials():
+def test_credentials():
     result = [
         os.environ.get('TEST_SYNAPSE_USERNAME'),
-        os.environ.get('TEST_SYNAPSE_PASSWORD')
+        os.environ.get('TEST_SYNAPSE_PASSWORD'),
+        os.environ.get('TEST_SYNAPSE_AUTH_TOKEN')
     ]
     if None in result:
-        raise Exception('Environment variables not set: TEST_SYNAPSE_USERNAME or TEST_SYNAPSE_PASSWORD')
+        raise Exception(
+            'Environment variables not set: TEST_SYNAPSE_USERNAME, TEST_SYNAPSE_PASSWORD, or TEST_SYNAPSE_AUTH_TOKEN')
     return result
 
 
 @pytest.fixture(scope='session')
-def other_test_user_credentials():
+def other_test_credentials():
     result = [
         os.environ.get('TEST_SYNAPSE_OTHER_USERNAME'),
-        os.environ.get('TEST_SYNAPSE_OTHER_PASSWORD')
+        os.environ.get('TEST_SYNAPSE_OTHER_PASSWORD'),
+        os.environ.get('TEST_SYNAPSE_OTHER_AUTH_TOKEN')
     ]
     if None in result:
-        raise Exception('Environment variables not set: TEST_SYNAPSE_OTHER_USERNAME or TEST_SYNAPSE_OTHER_PASSWORD')
+        raise Exception(
+            'Environment variables not set: TEST_SYNAPSE_OTHER_USERNAME, TEST_SYNAPSE_OTHER_PASSWORD, or TEST_SYNAPSE_OTHER_AUTH_TOKEN')
     return result
 
 
 @pytest.fixture(autouse=True)
-def login(syn_test_credentials, clear_env_vars):
+def login(test_credentials, clear_env_vars):
     clear_env_vars()
-    syn_user, syn_pass = syn_test_credentials
+    syn_user, syn_pass, syn_auth_token = test_credentials
     if not Synapsis.logged_in() or Synapsis.Synapse.credentials.username != syn_user:
-        assert Synapsis.configure(email=syn_user, password=syn_pass).login().logged_in()
+        assert Synapsis.configure(authToken=syn_auth_token).login().logged_in()
     assert Synapsis.Synapse.credentials.username == syn_user
     yield Synapsis
 
 
 @pytest.fixture(scope='session')
-def other_test_user(synapse_test_helper, other_test_user_credentials):
-    other_username, other_password = other_test_user_credentials
+def other_test_user(synapse_test_helper, other_test_credentials):
+    other_username = other_test_credentials[0]
     other_user = synapse_test_helper.client().getUserProfile(id=other_username)
     return other_user
 
 
 @pytest.fixture(scope='session')
-def syn_test_auth_token(syn_test_credentials):
-    syn_user, syn_pass = syn_test_credentials
-    response = requests.post('https://repo-prod.prod.sagebase.org/auth/v1/login2',
-                             json={'username': syn_user, 'password': syn_pass})
-    return response.json().get('accessToken', None)
-
-
-@pytest.fixture(scope='session')
-def synapse_test_helper(syn_test_credentials):
+def synapse_test_helper(test_credentials):
     if not SynapseTestHelper.configured():
-        syn_user, syn_pass = syn_test_credentials
+        auth_token = test_credentials[2]
         synapse_client = syn.Synapse(skip_checks=True, silent=True, configPath='')
-        synapse_client.login(email=syn_user, password=syn_pass, silent=True, rememberMe=False, forced=True)
+        synapse_client.login(authToken=auth_token, silent=True, rememberMe=False, forced=True)
         assert SynapseTestHelper.configure(synapse_client)
 
     with SynapseTestHelper() as sth:

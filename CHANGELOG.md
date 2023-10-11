@@ -1,5 +1,12 @@
 # Change Log
 
+## Version 0.0.6 (2023-10-11)
+
+### Changes
+
+- `Synapsis.Utils.set_entity_permission()` now accepts keyword args to pass to `Synapsis.Synapse.setPermissions()`
+- Added `multi_threaded` arg to `synapse_args`.
+
 ## Version 0.0.5 (2023-10-04)
 
 ### Changes

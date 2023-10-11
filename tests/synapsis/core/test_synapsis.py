@@ -41,9 +41,10 @@ def assert_is_logged_out():
         assert Synapsis.Synapse._is_logged_in() is False
 
 
-def test_configure(synapse_test_helper, syn_test_credentials, syn_test_auth_token, synapse_test_config, clear_env_vars,
-                   set_env_vars):
-    test_username, test_password = syn_test_credentials
+def test_configure(synapse_test_helper, test_credentials, other_test_credentials, synapse_test_config,
+                   clear_env_vars, set_env_vars):
+    test_username, test_password, test_auth_token = test_credentials
+    other_test_username, other_test_password, other_test_auth_token = other_test_credentials
 
     def reset():
         clear_env_vars()
@@ -52,14 +53,16 @@ def test_configure(synapse_test_helper, syn_test_credentials, syn_test_auth_toke
         assert Synapsis.Synapse.__synapse_init_args__ == {}
         assert Synapsis.Synapse.__synapse_login_args__ == {}
 
-    def assert_login(*args, **kwargs):
+    def assert_login(*args, _username: str, **kwargs):
         assert Synapsis.logged_in() is False
         Synapsis.configure(*args, **kwargs)
+        assert Synapsis.Synapse.__config__ == {}
         assert Synapsis.login()
         assert Synapsis.logged_in()
         assert Synapsis.Synapse.__synapse_init_args__ == {}
         assert Synapsis.Synapse.__synapse_login_args__ == {}
-        assert Synapsis.Synapse.credentials.username == test_username
+        assert Synapsis.Synapse.credentials.username == _username
+        assert Synapsis.Synapse.__config__ != {}
 
     # Failed login
     reset()
@@ -68,60 +71,80 @@ def test_configure(synapse_test_helper, syn_test_credentials, syn_test_auth_toke
 
     # User/Pass.
     reset()
-    assert_login(email=test_username, password=test_password)
+    assert_login(email=other_test_username, password=other_test_password, _username=other_test_username)
 
     # User/Pass/Auth Token.
     reset()
-    assert_login(email=test_username, password=test_password, authToken=syn_test_auth_token)
+    assert_login(email=other_test_username, password=other_test_password, authToken=other_test_auth_token,
+                 _username=other_test_username)
 
     # User/Auth Token.
     reset()
-    assert_login(email=test_username, authToken=syn_test_auth_token)
+    assert_login(email=other_test_username, authToken=other_test_auth_token, _username=other_test_username)
 
     # Auth Token.
     reset()
-    assert_login(authToken=syn_test_auth_token)
+    assert_login(authToken=other_test_auth_token, _username=other_test_username)
 
     # ENV Vars User/Pass.
     reset()
-    set_env_vars(username=test_username, password=test_password)
-    assert_login()
+    set_env_vars(username=other_test_username, password=other_test_password)
+    assert_login(_username=other_test_username)
 
     # ENV Vars User/Pass/Auth Token.
     reset()
-    set_env_vars(username=test_username, password=test_password, auth_token=syn_test_auth_token)
-    assert_login()
+    set_env_vars(username=other_test_username, password=other_test_password, auth_token=other_test_auth_token)
+    assert_login(_username=other_test_username)
 
     # ENV Vars Auth Token.
     reset()
-    set_env_vars(auth_token=syn_test_auth_token)
-    assert_login()
+    set_env_vars(auth_token=other_test_auth_token)
+    assert_login(_username=other_test_username)
 
     # Config file User/Pass.
     reset()
-    config_path = synapse_test_config(username=test_username, password=test_password)
-    assert_login(synapse_args={'configPath': config_path})
+    config_path = synapse_test_config(username=other_test_username, password=other_test_password)
+    assert_login(synapse_args={'configPath': config_path}, _username=other_test_username)
     assert Synapsis.Synapse.configPath == config_path
     reset()
     set_env_vars(config_file=config_path)
-    assert_login()
+    assert_login(_username=other_test_username)
     assert Synapsis.Synapse.configPath == config_path
 
     # Config file User/Pass/Auth Token.
     reset()
-    config_path = synapse_test_config(username=test_username, password=test_password, auth_token=syn_test_auth_token)
-    assert_login(synapse_args={'configPath': config_path})
+    config_path = synapse_test_config(username=other_test_username, password=other_test_password,
+                                      auth_token=other_test_auth_token)
+    assert_login(synapse_args={'configPath': config_path}, _username=other_test_username)
     reset()
     set_env_vars(config_file=config_path)
-    assert_login()
+    assert_login(_username=other_test_username)
 
     # Config file Auth Token.
     reset()
-    config_path = synapse_test_config(auth_token=syn_test_auth_token)
-    assert_login(synapse_args={'configPath': config_path})
+    config_path = synapse_test_config(auth_token=test_auth_token)
+    assert_login(synapse_args={'configPath': config_path}, _username=test_username)
     reset()
     set_env_vars(config_file=config_path)
-    assert_login()
+    assert_login(_username=test_username)
+
+    # Synapse Custom Config
+    reset()
+    config_path = synapse_test_config(auth_token=test_auth_token)
+    assert_login(synapse_args={'configPath': config_path, 'multi_threaded': False}, _username=test_username)
+    assert Synapsis.Synapse.multi_threaded is False
+
+    reset()
+    assert_login(authToken=test_auth_token, synapse_args={'multi_threaded': True}, _username=test_username)
+    assert Synapsis.Synapse.multi_threaded is True
+
+    reset()
+    assert_login(authToken=test_auth_token, synapse_args={'multi_threaded': False}, _username=test_username)
+    assert Synapsis.Synapse.multi_threaded is False
+
+    reset()
+    assert_login(authToken=test_auth_token, _username=test_username)
+    assert Synapsis.Synapse.multi_threaded is True
 
     # Login Hooks
     reset()
@@ -129,7 +152,7 @@ def test_configure(synapse_test_helper, syn_test_credentials, syn_test_auth_toke
     assert len(Synapsis.hooks.__hooks__) == 0
     Synapsis.hooks.after_login(lambda hook: callbacks.append(1))
     Synapsis.hooks.after_login(lambda hook: callbacks.append(2))
-    assert_login(authToken=syn_test_auth_token)
+    assert_login(authToken=test_auth_token, _username=test_username)
     assert callbacks == [1, 2]
 
     # Does not call AFTER_LOGIN if logging in fails.
