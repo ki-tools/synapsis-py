@@ -198,6 +198,9 @@ class SynapseConcreteType(object, metaclass=SynapseConcreteTypes):
         if self.name.endswith(&#39;Entity&#39;):
             self.name = self.name.removesuffix(&#39;Entity&#39;)
 
+    def __repr__(self):
+        return &#39;SynapseConcreteType({0}, {1})&#39;.format(self.code, self.name)
+
     @property
     def is_project(self):
         return self.code == type(self).PROJECT_ENTITY.code
@@ -322,6 +325,9 @@ class SynapseConcreteType(object, metaclass=SynapseConcreteTypes):
         self.name = code.split(&#39;.&#39;)[-1]
         if self.name.endswith(&#39;Entity&#39;):
             self.name = self.name.removesuffix(&#39;Entity&#39;)
+
+    def __repr__(self):
+        return &#39;SynapseConcreteType({0}, {1})&#39;.format(self.code, self.name)
 
     @property
     def is_project(self):

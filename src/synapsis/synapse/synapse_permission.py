@@ -108,6 +108,9 @@ class SynapsePermission(object, metaclass=SynapsePermissions):
         self._name = name
         self._access_types = sorted(access_types)
 
+    def __repr__(self):
+        return 'SynapsePermission({0}, {1})'.format(self.code, self.name)
+
     @property
     def code(self) -> PermissionCode:
         return self._code
@@ -119,6 +122,11 @@ class SynapsePermission(object, metaclass=SynapsePermissions):
     @property
     def access_types(self) -> AccessTypes:
         return self._access_types
+
+    @property
+    def none(self):
+        """Returns True if self is a SynapsePermission.NO_PERMISSION"""
+        return self.equals(SynapsePermission.NO_PERMISSION)
 
     def equals(self, other: SynapsePermission | AccessTypes | PermissionCode) -> bool:
         """Gets if self and other are the same permission."""

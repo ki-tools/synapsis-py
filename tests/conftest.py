@@ -1,9 +1,9 @@
 import pytest
 import os
-import requests
 import tempfile
 import shutil
 import synapseclient as syn
+from synapseclient.core.exceptions import SynapseHTTPError
 from synapseclient.core.utils import id_of
 from dotenv import load_dotenv
 from synapse_test_helper import SynapseTestHelper
@@ -79,6 +79,13 @@ def login(test_credentials, clear_env_vars):
         assert Synapsis.configure(authToken=syn_auth_token).login().logged_in()
     assert Synapsis.Synapse.credentials.username == syn_user
     yield Synapsis
+
+
+@pytest.fixture
+def test_user(synapse_test_helper, test_credentials):
+    username = test_credentials[0]
+    user = synapse_test_helper.client().getUserProfile(id=username)
+    return user
 
 
 @pytest.fixture(scope='session')
@@ -206,6 +213,31 @@ def has_permission_to(synapse_test_helper):
     def _m(entity, principal, access_types=None):
         principal_id = syn.core.utils.id_of(principal)
         current_access_types = synapse_test_helper.client().getPermissions(entity, principalId=principal_id)
+        if access_types is None:
+            return len(current_access_types) > 0
+        else:
+            return set(current_access_types) == set(access_types)
+
+    yield _m
+
+
+@pytest.fixture
+def has_direct_permission_to(synapse_test_helper):
+    def _m(entity, principal, access_types=None):
+        entity_id = Synapsis.id_of(entity)
+        principal_id = syn.core.utils.id_of(principal)
+
+        try:
+            entity_acl = synapse_test_helper.client().restGET('/entity/{0}/acl'.format(entity_id))
+        except SynapseHTTPError as ex:
+            entity_acl = None
+            if ex.response.status_code == 404:
+                # The requested ACL does not exist. This entity inherits its permissions from: /entity/syn0000000/acl
+                return False
+            else:
+                raise
+        user_access = Utils.find(entity_acl['resourceAccess'], lambda a: str(a.get('principalId')) == str(principal_id))
+        current_access_types = user_access['accessType'] if user_access else []
         if access_types is None:
             return len(current_access_types) > 0
         else:

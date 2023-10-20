@@ -1,5 +1,14 @@
 # Change Log
 
+## Version 0.0.7 (2023-10-19)
+
+### Changes
+
+- Added `id_only` arg to `Synapsis.Utils.get_project()`
+- Added `Synapsis.Utils.find_acl_resource_access()`
+- Added `Synapsis.Utils.get_team_permission()`
+- Refactored `Synapsis.Utils` get and set permissions methods.
+
 ## Version 0.0.6 (2023-10-11)
 
 ### Changes

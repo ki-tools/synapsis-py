@@ -94,6 +94,11 @@ def test_are_equal():
         assert other.access_types != perm.access_types
         assert SynapsePermission.are_equal(perm, other) is False
 
+        if perm.code == SynapsePermission.NO_PERMISSION.code:
+            assert perm.none is True
+        else:
+            assert perm.none is False
+
         # True
         permutations = list(itertools.permutations(
             [perm, perm.code, perm.access_types, same, same.code, same.access_types], r=2))

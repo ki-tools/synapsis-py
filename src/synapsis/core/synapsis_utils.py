@@ -1,5 +1,6 @@
 from __future__ import annotations
 import typing as t
+from collections.abc import Iterable
 import itertools
 import json
 import string
@@ -20,7 +21,9 @@ class SynapsisUtils(object):
     def __init__(self, synapse: Synapse):
         self.__synapse__ = synapse
 
-    def id_of(self, obj: synapseclient.Entity | str | dict | numbers.Number) -> str | numbers.Number:
+    def id_of(self,
+              obj: synapseclient.Entity | str | dict | numbers.Number
+              ) -> str | numbers.Number:
         """
         Try to figure out the Synapse ID of the given object.
 
@@ -29,7 +32,10 @@ class SynapsisUtils(object):
         """
         return id_of(obj)
 
-    def is_synapse_id(self, value: str, exists: bool = False) -> bool:
+    def is_synapse_id(self,
+                      value: str,
+                      exists: bool = False
+                      ) -> bool:
         """
         Gets if the value is a Synapse ID and optionally if the Entity exists.
 
@@ -77,7 +83,9 @@ class SynapsisUtils(object):
         else:
             return None
 
-    def delete_skip_trash(self, entity: synapseclient.Entity | str) -> None:
+    def delete_skip_trash(self,
+                          entity: synapseclient.Entity | str
+                          ) -> None:
         """
         Delete an entity and skip the trash. This permanently deletes the Entity.
 
@@ -102,7 +110,8 @@ class SynapsisUtils(object):
                    include_doi_association: t.Optional[bool] = False,
                    include_file_name: t.Optional[bool] = False,
                    include_thread_count: t.Optional[bool] = False,
-                   include_restriction_information: t.Optional[bool] = False) -> dict:
+                   include_restriction_information: t.Optional[bool] = False
+                   ) -> dict:
         """
         Gets the bundle for an Entity.
 
@@ -134,7 +143,8 @@ class SynapsisUtils(object):
     def copy_file_handles_batch(self,
                                 file_handle_ids: list[str],
                                 obj_types: list[str],
-                                obj_ids: list[str]) -> list[dict]:
+                                obj_ids: list[str]
+                                ) -> list[dict]:
         """
         Copies multiple filehandles.
 
@@ -168,19 +178,32 @@ class SynapsisUtils(object):
 
         return copy_results
 
-    def get_project(self, entity: synapseclient.Entity | str) -> synapseclient.Project:
+    def get_project(self,
+                    entity: synapseclient.Entity | str,
+                    id_only: bool = False
+                    ) -> synapseclient.Project | str:
         """
-        Gets the Project for a child entity (or returns self if entity is a Project).
+        Gets the Project or ID for a child entity.
 
         :param entity: The Entity to get the Project for.
-        :return: Project
+        :param id_only: True to only return the Project's ID.
+        :return: Project or ID
         """
         if isinstance(entity, synapseclient.Project):
-            return entity
-        path = self.__synapse__.restGET('/entity/{0}/path'.format(self.id_of(entity))).get('path')[1:][0]
-        return self.__synapse__.get(path['id'])
+            if id_only:
+                return self.id_of(entity)
+            else:
+                return entity
 
-    def get_synapse_path(self, entity: synapseclient.Entity | str) -> str:
+        path = self.__synapse__.restGET('/entity/{0}/path'.format(self.id_of(entity))).get('path')[1:][0]
+        if id_only:
+            return path['id']
+        else:
+            return self.__synapse__.get(path['id'])
+
+    def get_synapse_path(self,
+                         entity: synapseclient.Entity | str
+                         ) -> str:
         """
         Gets the absolute path to a Synapse Entity.
 
@@ -193,12 +216,14 @@ class SynapsisUtils(object):
 
     def find_data_file_handle(self,
                               source: list[dict] | synapseclient.File | dict,
-                              data_file_handle_id: t.Optional[str] = None) -> dict:
+                              data_file_handle_id: t.Optional[str] = None
+                              ) -> dict:
         """
         Gets the fileHandle from an entity, bundle, or list of filehandles.
 
         :param source: List of bundle["fileHandles"], File, or File bundle to get the filehandle from.
         :param data_file_handle_id: The dataFileHandleId to find.
+        :return: dict or None
         """
         file_handles = None
         if isinstance(source, synapseclient.File):
@@ -214,7 +239,26 @@ class SynapsisUtils(object):
         else:
             return Utils.find(file_handles, lambda f: str(f['id']) == str(data_file_handle_id))
 
-    def get_filehandle(self, file: synapseclient.File | str) -> dict | None:
+    def find_acl_resource_access(self,
+                                 acl: dict,
+                                 principal: synapseclient.UserProfile | synapseclient.Team | str | numbers.Number
+                                 ) -> dict | None:
+        """
+        Finds the resourceAccess from an ACL for a User or Team.
+
+        :param acl: The ACL to get the access from.
+        :param principal: The UserProfile, Team, or ID to get access for.
+        :return: dict or None
+        """
+        principal_id = self.id_of(principal)
+        resource_access = Utils.find((acl or {}).get('resourceAccess', []) or [],
+                                     lambda a: str(a.get('principalId')) == str(principal_id),
+                                     default=None)
+        return resource_access
+
+    def get_filehandle(self,
+                       file: synapseclient.File | str
+                       ) -> dict | None:
         """
         Gets the filehandle for an Entity.
 
@@ -228,7 +272,8 @@ class SynapsisUtils(object):
     def get_filehandles(self,
                         files_and_file_handles: list[tuple],
                         include_pre_signed_urls: t.Optional[bool] = False,
-                        include_preview_pre_signed_urls: t.Optional[bool] = False) -> list[dict]:
+                        include_preview_pre_signed_urls: t.Optional[bool] = False
+                        ) -> list[dict]:
         """
         Gets multiple filehandles at once.
 
@@ -265,7 +310,7 @@ class SynapsisUtils(object):
         """
         Gets the permission on an Entity for a user or team.
 
-        :param entity: The Entity or ID to get the permission on.
+        :param entity: The Entity or ID to get the permission from.
         :param principal: The UserProfile, Team, or ID to get permission for.
         :return: SynapsePermission
         """
@@ -278,33 +323,30 @@ class SynapsisUtils(object):
                               principal: synapseclient.UserProfile | synapseclient.Team | str | numbers.Number,
                               permission: SynapsePermission | PermissionCode | AccessTypes | None,
                               **set_permissions_kwargs: t.Optional[dict]
-                              ) -> dict | None:
+                              ) -> dict:
         """
         Set the permission on an Entity for a user or team.
 
-        :param entity: The Entity or ID to change the permission on.
-        :param principal: The UserProfile, Team, or ID to change permission on.
+        :param entity: The Entity or ID to set the permission on.
+        :param principal: The UserProfile, Team, or ID to change the permission for.
         :param permission: SynapsePermission, SynapsePermission.code, list of permissions, or None to remove the permission.
         :param set_permissions_kwargs: Keyword args for Synapse.setPermissions().
-        :return: dict if permission updated else None.
+        :return: dict
         """
         permission = SynapsePermission.get(permission, SynapsePermission.NO_PERMISSION)
-
-        # Check if the principal has been added to the entity and what permission it has.
-        current_permission = self.get_entity_permission(entity, principal)
-        if not permission.equals(current_permission):
-            principal_id = self.id_of(principal)
-            return self.__synapse__.setPermissions(entity, principal_id, accessType=permission.access_types,
-                                                   **set_permissions_kwargs)
-        else:
-            return None
+        principal_id = self.id_of(principal)
+        return self.__synapse__.setPermissions(entity,
+                                               principal_id,
+                                               accessType=permission.access_types,
+                                               **set_permissions_kwargs)
 
     def invite_to_team(self,
-                       team: synapseclient.Team | str,
-                       invitee: synapseclient.UserProfile | str,
+                       team: synapseclient.Team | str | numbers.Number,
+                       invitee: synapseclient.UserProfile | str | numbers.Number,
                        message: t.Optional[str] = None,
                        force: t.Optional[bool] = False,
-                       as_manager: t.Optional[bool] = False) -> dict | list[dict, dict] | None:
+                       as_manager: t.Optional[bool] = False
+                       ) -> dict | list[dict, dict] | None:
         """
         Invite a user or email address to a Team.
 
@@ -337,41 +379,69 @@ class SynapsisUtils(object):
         else:
             return invite
 
+    def get_team_permission(self,
+                            team: synapseclient.Team | str | numbers.Number,
+                            user: synapseclient.UserProfile | str | numbers.Number,
+                            **kwargs: t.Optional[dict]
+                            ) -> SynapsePermission:
+        """
+        Gets the permission on a Team for a user.
+
+        :param team: The Team or ID to get the permission from.
+        :param user: The UserProfile or ID to get permission for.
+        :return: SynapsePermission
+        """
+        team_id = self.id_of(team)
+        team_acl = self.__synapse__.restGET('/team/{0}/acl'.format(team_id))
+        user_access = self.find_acl_resource_access(team_acl, user)
+        current_access_types = user_access['accessType'] if user_access else None
+        current_permission = SynapsePermission.get(current_access_types, SynapsePermission.NO_PERMISSION)
+
+        if kwargs.get('with_acl', False) is True:
+            return current_permission, team_acl, user_access
+        else:
+            return current_permission
+
     def set_team_permission(self,
-                            team: synapseclient.Team | str,
-                            user: synapseclient.UserProfile | str,
-                            permission: SynapsePermission | PermissionCode | AccessTypes | None) -> dict | None:
+                            team: synapseclient.Team | str | numbers.Number,
+                            user: synapseclient.UserProfile | str | numbers.Number,
+                            permission: SynapsePermission | PermissionCode | AccessTypes | None
+                            ) -> dict | None:
         """
         Set the permission for a User on a Team.
 
         :param team: The Team or ID to set the permission on.
         :param user: The UserProfile or ID to give permission to.
         :param permission: The permission to add or remove.
-        :return: dict
+        :return: dict or None
         """
-        team_id = self.id_of(team)
-        user_id = self.id_of(user)
         permission = SynapsePermission.get(permission, SynapsePermission.NO_PERMISSION)
+        current_permission, team_acl, user_access = self.get_team_permission(team, user, with_acl=True)
 
-        team_acl = self.__synapse__.restGET('/team/{0}/acl'.format(team_id))
-        user_access = Utils.find(team_acl['resourceAccess'], lambda a: str(a.get('principalId')) == str(user_id))
-        current_access_types = user_access['accessType'] if user_access else None
-
-        if permission.equals(current_access_types):
+        if permission.equals(current_permission):
             return None
         else:
-            if SynapsePermission.NO_PERMISSION.equals(permission):
-                if user_access:
+            if permission.none:
+                if user_access is not None:
+                    # Remove the permission.
                     team_acl['resourceAccess'].remove(user_access)
+                else:
+                    # Permission is being set to none and user has no access so nothing to update.
+                    return None
+            elif user_access:
+                # Update the existing permission for the user.
+                user_access['accessType'] = permission.access_types
             else:
-                new_acl = {'principalId': user_id, 'accessType': permission.access_types}
+                # Add a new permission for the user.
+                new_acl = {'principalId': self.id_of(user), 'accessType': permission.access_types}
                 team_acl['resourceAccess'].append(new_acl)
             return self.__synapse__.restPUT("/team/acl", body=json.dumps(team_acl))
 
     def md5sum(self,
                filename: str,
                chunk_blocks: t.Optional[int] = 12800,
-               as_bytes: t.Optional[bool] = False) -> str | bytes:
+               as_bytes: t.Optional[bool] = False
+               ) -> str | bytes:
         """
         Gets the MD5 value for a file.
 
@@ -397,7 +467,8 @@ class SynapsisUtils(object):
     def sanitize_entity_name(self,
                              name: str,
                              replace_char: t.Optional[str] = '_',
-                             return_replaced: t.Optional[bool] = False) -> str | list[str, list]:
+                             return_replaced: t.Optional[bool] = False
+                             ) -> str | list[str, list]:
         """
         Sanitizes the name for an Entity or File.
 

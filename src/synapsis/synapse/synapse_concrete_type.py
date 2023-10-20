@@ -170,6 +170,9 @@ class SynapseConcreteType(object, metaclass=SynapseConcreteTypes):
         if self.name.endswith('Entity'):
             self.name = self.name.removesuffix('Entity')
 
+    def __repr__(self):
+        return 'SynapseConcreteType({0}, {1})'.format(self.code, self.name)
+
     @property
     def is_project(self):
         return self.code == type(self).PROJECT_ENTITY.code

@@ -136,6 +136,9 @@ class SynapsePermission(object, metaclass=SynapsePermissions):
         self._name = name
         self._access_types = sorted(access_types)
 
+    def __repr__(self):
+        return &#39;SynapsePermission({0}, {1})&#39;.format(self.code, self.name)
+
     @property
     def code(self) -&gt; PermissionCode:
         return self._code
@@ -147,6 +150,11 @@ class SynapsePermission(object, metaclass=SynapsePermissions):
     @property
     def access_types(self) -&gt; AccessTypes:
         return self._access_types
+
+    @property
+    def none(self):
+        &#34;&#34;&#34;Returns True if self is a SynapsePermission.NO_PERMISSION&#34;&#34;&#34;
+        return self.equals(SynapsePermission.NO_PERMISSION)
 
     def equals(self, other: SynapsePermission | AccessTypes | PermissionCode) -&gt; bool:
         &#34;&#34;&#34;Gets if self and other are the same permission.&#34;&#34;&#34;
@@ -218,6 +226,9 @@ class SynapsePermission(object, metaclass=SynapsePermissions):
         self._name = name
         self._access_types = sorted(access_types)
 
+    def __repr__(self):
+        return &#39;SynapsePermission({0}, {1})&#39;.format(self.code, self.name)
+
     @property
     def code(self) -&gt; PermissionCode:
         return self._code
@@ -229,6 +240,11 @@ class SynapsePermission(object, metaclass=SynapsePermissions):
     @property
     def access_types(self) -&gt; AccessTypes:
         return self._access_types
+
+    @property
+    def none(self):
+        &#34;&#34;&#34;Returns True if self is a SynapsePermission.NO_PERMISSION&#34;&#34;&#34;
+        return self.equals(SynapsePermission.NO_PERMISSION)
 
     def equals(self, other: SynapsePermission | AccessTypes | PermissionCode) -&gt; bool:
         &#34;&#34;&#34;Gets if self and other are the same permission.&#34;&#34;&#34;
@@ -300,7 +316,7 @@ def are_equal(cls,
 </details>
 </dd>
 <dt id="synapsis.synapse.synapse_permission.SynapsePermission.get"><code class="name flex">
-<span>def <span class="ident">get</span></span>(<span>value: <a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a> | PermissionCode | AccessTypes | None, default: <a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a> | None = &lt;synapsis.core.narg.Narg object&gt;) ‑> <a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a></span>
+<span>def <span class="ident">get</span></span>(<span>value: <a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a> | PermissionCode | AccessTypes | None, default: <a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a> | None = &lt;property object&gt;) ‑> <a title="synapsis.synapse.synapse_permission.SynapsePermission" href="#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>Gets a SynapsePermission</p></div>
@@ -371,6 +387,19 @@ def code(self) -&gt; PermissionCode:
 <pre><code class="python">@property
 def name(self) -&gt; str:
     return self._name</code></pre>
+</details>
+</dd>
+<dt id="synapsis.synapse.synapse_permission.SynapsePermission.none"><code class="name">var <span class="ident">none</span></code></dt>
+<dd>
+<div class="desc"><p>Returns True if self is a SynapsePermission.NO_PERMISSION</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@property
+def none(self):
+    &#34;&#34;&#34;Returns True if self is a SynapsePermission.NO_PERMISSION&#34;&#34;&#34;
+    return self.equals(SynapsePermission.NO_PERMISSION)</code></pre>
 </details>
 </dd>
 </dl>
@@ -699,6 +728,7 @@ def TEAM_PERMISSIONS(cls) -&gt; list[SynapsePermission]:
 <li><code><a title="synapsis.synapse.synapse_permission.SynapsePermission.equals" href="#synapsis.synapse.synapse_permission.SynapsePermission.equals">equals</a></code></li>
 <li><code><a title="synapsis.synapse.synapse_permission.SynapsePermission.get" href="#synapsis.synapse.synapse_permission.SynapsePermission.get">get</a></code></li>
 <li><code><a title="synapsis.synapse.synapse_permission.SynapsePermission.name" href="#synapsis.synapse.synapse_permission.SynapsePermission.name">name</a></code></li>
+<li><code><a title="synapsis.synapse.synapse_permission.SynapsePermission.none" href="#synapsis.synapse.synapse_permission.SynapsePermission.none">none</a></code></li>
 </ul>
 </li>
 <li>

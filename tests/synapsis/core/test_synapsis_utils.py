@@ -96,14 +96,29 @@ async def test_delete_skip_trash(synapse_test_helper):
     assert 'is in trash can' in e.value.response.text or 'does not exist' in e.value.response.text
 
 
-async def test_set_entity_permission(synapse_test_helper, syn_project, syn_folder, other_test_user, has_permission_to):
+async def test_get_entity_permission(synapse_test_helper, syn_project, syn_folder, syn_file, other_test_user):
+    team = synapse_test_helper.create_team()
+
+    for entity in [syn_file, syn_folder, syn_project]:
+        for principal, principal_permission in [
+            [team, Synapsis.Permissions.CAN_VIEW],
+            [other_test_user, Synapsis.Permissions.CAN_EDIT]
+        ]:
+            assert Synapsis.Utils.get_entity_permission(entity, principal) == Synapsis.Permissions.NO_PERMISSION
+            assert Synapsis.Utils.set_entity_permission(entity, principal, principal_permission)
+            assert Synapsis.Utils.get_entity_permission(entity, principal) == principal_permission
+
+
+async def test_set_entity_permission(synapse_test_helper, syn_project, syn_folder, other_test_user, has_permission_to,
+                                     has_direct_permission_to):
     team = synapse_test_helper.create_team()
 
     # Add team permission.
     assert has_permission_to(syn_project, team, Synapsis.Permissions.CAN_VIEW.access_types) is False
     assert Synapsis.Utils.set_entity_permission(syn_project, team, permission=Synapsis.Permissions.CAN_VIEW)
-    assert Synapsis.Utils.set_entity_permission(syn_project, team, permission=Synapsis.Permissions.CAN_VIEW) is None
+    assert Synapsis.Utils.set_entity_permission(syn_project, team, permission=Synapsis.Permissions.CAN_VIEW)
     assert has_permission_to(syn_project, team, Synapsis.Permissions.CAN_VIEW.access_types)
+    assert has_direct_permission_to(syn_project, team, Synapsis.Permissions.CAN_VIEW.access_types)
 
     # Remove team permission.
     Synapsis.Utils.set_entity_permission(syn_project, team, permission=None)
@@ -114,21 +129,23 @@ async def test_set_entity_permission(synapse_test_helper, syn_project, syn_folde
     assert await Synapsis.Chain.Utils.set_entity_permission(syn_project, other_test_user,
                                                             permission=Synapsis.Permissions.CAN_VIEW.code)
     assert await Synapsis.Chain.Utils.set_entity_permission(syn_project, other_test_user,
-                                                            permission=Synapsis.Permissions.CAN_VIEW.code) is None
+                                                            permission=Synapsis.Permissions.CAN_VIEW.code)
     assert has_permission_to(syn_project, other_test_user, Synapsis.Permissions.CAN_VIEW.access_types)
 
     # Remove user permission.
     assert await Synapsis.Chain.Utils.set_entity_permission(syn_project, other_test_user,
                                                             permission=Synapsis.Permissions.NO_PERMISSION)
-    assert await Synapsis.Chain.Utils.set_entity_permission(syn_project, other_test_user, permission=None) is None
+    assert await Synapsis.Chain.Utils.set_entity_permission(syn_project, other_test_user, permission=None)
     assert has_permission_to(syn_project, other_test_user) is False
 
     # set_permissions_kwargs
     assert has_permission_to(syn_folder, other_test_user, Synapsis.Permissions.CAN_VIEW.access_types) is False
+    assert has_direct_permission_to(syn_folder, other_test_user, Synapsis.Permissions.CAN_VIEW.access_types) is False
     assert Synapsis.Utils.set_entity_permission(syn_folder, other_test_user,
                                                 permission=Synapsis.Permissions.CAN_VIEW,
                                                 warn_if_inherits=False)
-    assert has_permission_to(syn_folder, other_test_user, Synapsis.Permissions.CAN_VIEW.access_types) is True
+    assert has_permission_to(syn_folder, other_test_user, Synapsis.Permissions.CAN_VIEW.access_types)
+    assert has_direct_permission_to(syn_folder, other_test_user, Synapsis.Permissions.CAN_VIEW.access_types)
 
 
 async def test_get_bundle(synapse_test_helper, syn_project):
@@ -216,6 +233,12 @@ async def test_get_project(synapse_test_helper, syn_project, syn_folder, syn_fil
         ]
         assert_match(items, is_a=syn.Project, equals=lambda items: all_items_match(items, attr='id'))
 
+        items = [
+            Synapsis.Utils.get_project(entity, id_only=True),
+            await Synapsis.Chain.Utils.get_project(entity, id_only=True)
+        ]
+        assert_match(items, equals=syn_project.id)
+
 
 async def test_invite_to_team(synapse_test_helper, other_test_user, is_invited_to_team, is_manager_on_team):
     team = synapse_test_helper.create_team()
@@ -242,6 +265,18 @@ async def test_invite_to_team(synapse_test_helper, other_test_user, is_invited_t
     assert is_manager_on_team(team, other_test_user)
 
 
+async def test_get_team_permission(synapse_test_helper, other_test_user):
+    team = synapse_test_helper.create_team()
+
+    assert Synapsis.Utils.get_team_permission(team, other_test_user) == Synapsis.Permissions.NO_PERMISSION
+    assert Synapsis.Utils.set_team_permission(team, other_test_user, Synapsis.Permissions.TEAM_MANAGER)
+    assert Synapsis.Utils.set_team_permission(team, other_test_user, Synapsis.Permissions.TEAM_MANAGER) is None
+    assert Synapsis.Utils.get_team_permission(team, other_test_user) == Synapsis.Permissions.TEAM_MANAGER
+
+    assert Synapsis.Utils.set_team_permission(team, other_test_user, Synapsis.Permissions.NO_PERMISSION)
+    assert Synapsis.Utils.get_team_permission(team, other_test_user) == Synapsis.Permissions.NO_PERMISSION
+
+
 async def test_set_team_permission(synapse_test_helper, other_test_credentials, other_test_user,
                                    is_invited_to_team,
                                    is_manager_on_team, accept_team_invite):
@@ -254,13 +289,14 @@ async def test_set_team_permission(synapse_test_helper, other_test_credentials, 
     assert is_invited_to_team(team, other_test_user) is False
 
     assert is_manager_on_team(team, other_test_user) is False
-    assert await Synapsis.Chain.Utils.set_team_permission(team, other_test_user, None)
+    assert await Synapsis.Chain.Utils.set_team_permission(team, other_test_user, None) is None
+    assert is_manager_on_team(team, other_test_user) is False
+    assert Synapsis.Utils.set_team_permission(team, other_test_user, Synapsis.Permissions.NO_PERMISSION) is None
     assert is_manager_on_team(team, other_test_user) is False
 
     assert await Synapsis.Chain.Utils.set_team_permission(team, other_test_user, Synapsis.Permissions.TEAM_MANAGER)
     assert is_manager_on_team(team, other_test_user)
-    assert await Synapsis.Chain.Utils.set_team_permission(team, other_test_user,
-                                                          Synapsis.Permissions.TEAM_MANAGER) is None
+    assert Synapsis.Utils.set_team_permission(team, other_test_user, Synapsis.Permissions.TEAM_MANAGER) is None
     assert is_manager_on_team(team, other_test_user)
     assert Synapsis.Utils.set_team_permission(team, other_test_user, Synapsis.Permissions.NO_PERMISSION)
     assert is_manager_on_team(team, other_test_user) is False
@@ -275,6 +311,50 @@ async def test_find_data_file_handle(synapse_test_helper, syn_file):
         assert Synapsis.Utils.find_data_file_handle(
             source, data_file_handle_id=expected_file_handle_id
         )['id'] == expected_file_handle_id
+
+
+async def test_find_acl_resource_access(synapse_test_helper, syn_project, syn_folder, test_user, other_test_user):
+    team = synapse_test_helper.create_team()
+    objs = [team, syn_folder, syn_project]
+    principals = [other_test_user, team]
+
+    for principal in principals:
+        with pytest.raises(ValueError, match="couldn't find id of None"):
+            Synapsis.Utils.find_acl_resource_access({}, None)
+
+        with pytest.raises(ValueError, match="couldn't find id of None"):
+            Synapsis.Utils.find_acl_resource_access(None, None)
+
+        assert Synapsis.Utils.find_acl_resource_access({}, principal) is None
+        assert Synapsis.Utils.find_acl_resource_access({'resourceAccess': None}, principal) is None
+        assert Synapsis.Utils.find_acl_resource_access(None, principal) is None
+        assert Synapsis.Utils.find_acl_resource_access({'resourceAccess': []}, principal) is None
+
+        for obj in objs:
+            if isinstance(obj, syn.Team) and isinstance(principal, syn.Team):
+                continue
+
+            # Reset permissions first.
+            if isinstance(obj, syn.Team):
+                Synapsis.Utils.set_team_permission(obj, principal, Synapsis.Permissions.NO_PERMISSION)
+            else:
+                Synapsis.Utils.set_entity_permission(obj, principal, Synapsis.Permissions.NO_PERMISSION)
+
+            obj_before_acl = Synapsis.Synapse._getACL(obj)
+            assert Synapsis.Utils.find_acl_resource_access(obj_before_acl, principal) is None
+
+            if isinstance(obj, syn.Team):
+                new_permission = Synapsis.Permissions.TEAM_MANAGER
+                assert Synapsis.Utils.set_team_permission(obj, principal, new_permission)
+            else:
+                new_permission = Synapsis.Permissions.ADMIN
+                assert Synapsis.Utils.set_entity_permission(obj, principal, new_permission)
+
+            obj_acl_after = Synapsis.Synapse._getACL(obj)
+            resource_access = Synapsis.Utils.find_acl_resource_access(obj_acl_after, principal)
+            assert resource_access is not None
+            assert str(resource_access['principalId']) == str(Synapsis.id_of(principal))
+            assert Synapsis.Permissions.are_equal(new_permission, resource_access['accessType'])
 
 
 async def test_copy_file_handles_batch(synapse_test_helper, syn_file, mocker):
