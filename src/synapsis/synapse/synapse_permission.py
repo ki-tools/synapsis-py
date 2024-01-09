@@ -17,18 +17,20 @@ class SynapsePermissions(type):
     @property
     @functools.cache
     def ENTITY_PERMISSIONS(cls) -> list[SynapsePermission]:
+        # These are rank ordered. DO NOT CHANGE THE ORDER.
         return [
             cls.NO_PERMISSION,
-            cls.ADMIN,
-            cls.CAN_EDIT_AND_DELETE,
-            cls.CAN_EDIT,
+            cls.CAN_VIEW,
             cls.CAN_DOWNLOAD,
-            cls.CAN_VIEW
+            cls.CAN_EDIT,
+            cls.CAN_EDIT_AND_DELETE,
+            cls.ADMIN
         ]
 
     @property
     @functools.cache
     def TEAM_PERMISSIONS(cls) -> list[SynapsePermission]:
+        # These are rank ordered. DO NOT CHANGE THE ORDER.
         return [
             cls.NO_PERMISSION,
             cls.TEAM_MANAGER
@@ -110,6 +112,26 @@ class SynapsePermission(object, metaclass=SynapsePermissions):
 
     def __repr__(self):
         return 'SynapsePermission({0}, {1})'.format(self.code, self.name)
+
+    def __eq__(self, other):
+        if not isinstance(other, SynapsePermission):
+            return NotImplemented
+        return self.equals(other)
+
+    def __lt__(self, other):
+        if not isinstance(other, SynapsePermission):
+            return NotImplemented
+        permissions = None
+        for permission_set in [SynapsePermission.ENTITY_PERMISSIONS, SynapsePermission.TEAM_PERMISSIONS]:
+            if self in permission_set and other in permission_set:
+                permissions = permission_set
+                break
+        if not permissions:
+            raise ValueError('Self and other must belong to the same permission set.')
+
+        self_rank = permissions.index(self)
+        other_rank = permissions.index(other)
+        return self_rank < other_rank
 
     @property
     def code(self) -> PermissionCode:

@@ -1,6 +1,5 @@
 from __future__ import annotations
 import typing as t
-from collections.abc import Iterable
 import itertools
 import json
 import string
@@ -211,7 +210,7 @@ class SynapsisUtils(object):
         :return: str
         """
         paths = self.__synapse__.restGET('/entity/{0}/path'.format(self.id_of(entity))).get('path')[1:]
-        segments = [p['name'] for p in paths]
+        segments = Utils.map(paths, key='name')
         return '/'.join(segments)
 
     def find_data_file_handle(self,
@@ -265,8 +264,8 @@ class SynapsisUtils(object):
         :param file: File Entity or ID
         :return: dict
         """
-        res = self.__synapse__.restGET('/entity/{0}/filehandles'.format(self.id_of(file)))
-        filehandle = self.find_data_file_handle(res['list'])
+        response = self.__synapse__.restGET('/entity/{0}/filehandles'.format(self.id_of(file)))
+        filehandle = self.find_data_file_handle(response['list'])
         return filehandle
 
     def get_filehandles(self,
@@ -297,11 +296,11 @@ class SynapsisUtils(object):
                 }
             )
 
-        res = self.__synapse__.restPOST('/fileHandle/batch',
-                                        endpoint=self.__synapse__.fileHandleEndpoint,
-                                        body=json.dumps(body))
+        response = self.__synapse__.restPOST('/fileHandle/batch',
+                                             endpoint=self.__synapse__.fileHandleEndpoint,
+                                             body=json.dumps(body))
 
-        return res.get('requestedFiles', [])
+        return response.get('requestedFiles', [])
 
     def get_entity_permission(self,
                               entity: synapseclient.Entity | str,

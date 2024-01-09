@@ -11,7 +11,7 @@ class Synapse(synapseclient.Synapse):
     __SYNAPSE_INIT_ARGS_DEFAULT__: t.ClassVar[t.Final[dict]] = {
         'skip_checks': True,
         'silent': True,
-        "multi_threaded": True
+        "multi_threaded": False
     }
     __SYNAPSE_LOGIN_ARGS_DEFAULT__: t.ClassVar[t.Final[dict]] = {
         'silent': True,

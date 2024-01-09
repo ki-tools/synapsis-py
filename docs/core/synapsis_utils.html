@@ -28,7 +28,6 @@
 </summary>
 <pre><code class="python">from __future__ import annotations
 import typing as t
-from collections.abc import Iterable
 import itertools
 import json
 import string
@@ -239,7 +238,7 @@ class SynapsisUtils(object):
         :return: str
         &#34;&#34;&#34;
         paths = self.__synapse__.restGET(&#39;/entity/{0}/path&#39;.format(self.id_of(entity))).get(&#39;path&#39;)[1:]
-        segments = [p[&#39;name&#39;] for p in paths]
+        segments = Utils.map(paths, key=&#39;name&#39;)
         return &#39;/&#39;.join(segments)
 
     def find_data_file_handle(self,
@@ -293,8 +292,8 @@ class SynapsisUtils(object):
         :param file: File Entity or ID
         :return: dict
         &#34;&#34;&#34;
-        res = self.__synapse__.restGET(&#39;/entity/{0}/filehandles&#39;.format(self.id_of(file)))
-        filehandle = self.find_data_file_handle(res[&#39;list&#39;])
+        response = self.__synapse__.restGET(&#39;/entity/{0}/filehandles&#39;.format(self.id_of(file)))
+        filehandle = self.find_data_file_handle(response[&#39;list&#39;])
         return filehandle
 
     def get_filehandles(self,
@@ -325,11 +324,11 @@ class SynapsisUtils(object):
                 }
             )
 
-        res = self.__synapse__.restPOST(&#39;/fileHandle/batch&#39;,
-                                        endpoint=self.__synapse__.fileHandleEndpoint,
-                                        body=json.dumps(body))
+        response = self.__synapse__.restPOST(&#39;/fileHandle/batch&#39;,
+                                             endpoint=self.__synapse__.fileHandleEndpoint,
+                                             body=json.dumps(body))
 
-        return res.get(&#39;requestedFiles&#39;, [])
+        return response.get(&#39;requestedFiles&#39;, [])
 
     def get_entity_permission(self,
                               entity: synapseclient.Entity | str,
@@ -744,7 +743,7 @@ class SynapsisUtils(object):
         :return: str
         &#34;&#34;&#34;
         paths = self.__synapse__.restGET(&#39;/entity/{0}/path&#39;.format(self.id_of(entity))).get(&#39;path&#39;)[1:]
-        segments = [p[&#39;name&#39;] for p in paths]
+        segments = Utils.map(paths, key=&#39;name&#39;)
         return &#39;/&#39;.join(segments)
 
     def find_data_file_handle(self,
@@ -798,8 +797,8 @@ class SynapsisUtils(object):
         :param file: File Entity or ID
         :return: dict
         &#34;&#34;&#34;
-        res = self.__synapse__.restGET(&#39;/entity/{0}/filehandles&#39;.format(self.id_of(file)))
-        filehandle = self.find_data_file_handle(res[&#39;list&#39;])
+        response = self.__synapse__.restGET(&#39;/entity/{0}/filehandles&#39;.format(self.id_of(file)))
+        filehandle = self.find_data_file_handle(response[&#39;list&#39;])
         return filehandle
 
     def get_filehandles(self,
@@ -830,11 +829,11 @@ class SynapsisUtils(object):
                 }
             )
 
-        res = self.__synapse__.restPOST(&#39;/fileHandle/batch&#39;,
-                                        endpoint=self.__synapse__.fileHandleEndpoint,
-                                        body=json.dumps(body))
+        response = self.__synapse__.restPOST(&#39;/fileHandle/batch&#39;,
+                                             endpoint=self.__synapse__.fileHandleEndpoint,
+                                             body=json.dumps(body))
 
-        return res.get(&#39;requestedFiles&#39;, [])
+        return response.get(&#39;requestedFiles&#39;, [])
 
     def get_entity_permission(self,
                               entity: synapseclient.Entity | str,
@@ -1318,8 +1317,8 @@ class SynapsisUtils(object):
     :param file: File Entity or ID
     :return: dict
     &#34;&#34;&#34;
-    res = self.__synapse__.restGET(&#39;/entity/{0}/filehandles&#39;.format(self.id_of(file)))
-    filehandle = self.find_data_file_handle(res[&#39;list&#39;])
+    response = self.__synapse__.restGET(&#39;/entity/{0}/filehandles&#39;.format(self.id_of(file)))
+    filehandle = self.find_data_file_handle(response[&#39;list&#39;])
     return filehandle</code></pre>
 </details>
 </dd>
@@ -1364,11 +1363,11 @@ class SynapsisUtils(object):
             }
         )
 
-    res = self.__synapse__.restPOST(&#39;/fileHandle/batch&#39;,
-                                    endpoint=self.__synapse__.fileHandleEndpoint,
-                                    body=json.dumps(body))
+    response = self.__synapse__.restPOST(&#39;/fileHandle/batch&#39;,
+                                         endpoint=self.__synapse__.fileHandleEndpoint,
+                                         body=json.dumps(body))
 
-    return res.get(&#39;requestedFiles&#39;, [])</code></pre>
+    return response.get(&#39;requestedFiles&#39;, [])</code></pre>
 </details>
 </dd>
 <dt id="synapsis.core.synapsis_utils.SynapsisUtils.get_project"><code class="name flex">
@@ -1428,7 +1427,7 @@ class SynapsisUtils(object):
     :return: str
     &#34;&#34;&#34;
     paths = self.__synapse__.restGET(&#39;/entity/{0}/path&#39;.format(self.id_of(entity))).get(&#39;path&#39;)[1:]
-    segments = [p[&#39;name&#39;] for p in paths]
+    segments = Utils.map(paths, key=&#39;name&#39;)
     return &#39;/&#39;.join(segments)</code></pre>
 </details>
 </dd>

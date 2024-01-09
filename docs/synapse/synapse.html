@@ -39,7 +39,7 @@ class Synapse(synapseclient.Synapse):
     __SYNAPSE_INIT_ARGS_DEFAULT__: t.ClassVar[t.Final[dict]] = {
         &#39;skip_checks&#39;: True,
         &#39;silent&#39;: True,
-        &#34;multi_threaded&#34;: True
+        &#34;multi_threaded&#34;: False
     }
     __SYNAPSE_LOGIN_ARGS_DEFAULT__: t.ClassVar[t.Final[dict]] = {
         &#39;silent&#39;: True,
@@ -189,7 +189,7 @@ syn = synapseclient.Synapse()
     __SYNAPSE_INIT_ARGS_DEFAULT__: t.ClassVar[t.Final[dict]] = {
         &#39;skip_checks&#39;: True,
         &#39;silent&#39;: True,
-        &#34;multi_threaded&#34;: True
+        &#34;multi_threaded&#34;: False
     }
     __SYNAPSE_LOGIN_ARGS_DEFAULT__: t.ClassVar[t.Final[dict]] = {
         &#39;silent&#39;: True,

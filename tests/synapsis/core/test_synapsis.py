@@ -128,7 +128,12 @@ def test_configure(synapse_test_helper, test_credentials, other_test_credentials
     set_env_vars(config_file=config_path)
     assert_login(_username=test_username)
 
-    # Synapse Custom Config
+    # Synapse Custom Config:
+    #   - multi_threaded
+    reset()
+    assert_login(authToken=test_auth_token, _username=test_username)
+    assert Synapsis.Synapse.multi_threaded is False
+
     reset()
     config_path = synapse_test_config(auth_token=test_auth_token)
     assert_login(synapse_args={'configPath': config_path, 'multi_threaded': False}, _username=test_username)
@@ -141,10 +146,6 @@ def test_configure(synapse_test_helper, test_credentials, other_test_credentials
     reset()
     assert_login(authToken=test_auth_token, synapse_args={'multi_threaded': False}, _username=test_username)
     assert Synapsis.Synapse.multi_threaded is False
-
-    reset()
-    assert_login(authToken=test_auth_token, _username=test_username)
-    assert Synapsis.Synapse.multi_threaded is True
 
     # Login Hooks
     reset()

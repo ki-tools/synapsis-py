@@ -1,5 +1,12 @@
 # Change Log
 
+## Version 0.0.8 (2024-01-09)
+
+### Changes
+
+- Added `SynapsePermission` instance comparison and ranking (e.g., `perm_a == perm_b`, `perm_a > perm_b`)
+- Set default for `multi_threaded` to `False`.
+
 ## Version 0.0.7 (2023-10-19)
 
 ### Changes
