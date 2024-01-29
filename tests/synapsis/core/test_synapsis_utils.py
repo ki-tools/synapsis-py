@@ -277,16 +277,9 @@ async def test_get_team_permission(synapse_test_helper, other_test_user):
     assert Synapsis.Utils.get_team_permission(team, other_test_user) == Synapsis.Permissions.NO_PERMISSION
 
 
-async def test_set_team_permission(synapse_test_helper, other_test_credentials, other_test_user,
-                                   is_invited_to_team,
-                                   is_manager_on_team, accept_team_invite):
+async def test_set_team_permission(synapse_test_helper, other_test_user, invite_to_team_and_accept, is_manager_on_team):
     team = synapse_test_helper.create_team()
-    Synapsis.Utils.invite_to_team(team, other_test_user)
-    assert is_invited_to_team(team, other_test_user)
-
-    auth_token = other_test_credentials[2]
-    accept_team_invite(team, other_test_user, authToken=auth_token)
-    assert is_invited_to_team(team, other_test_user) is False
+    invite_to_team_and_accept(team)
 
     assert is_manager_on_team(team, other_test_user) is False
     assert await Synapsis.Chain.Utils.set_team_permission(team, other_test_user, None) is None
@@ -300,6 +293,93 @@ async def test_set_team_permission(synapse_test_helper, other_test_credentials, 
     assert is_manager_on_team(team, other_test_user)
     assert Synapsis.Utils.set_team_permission(team, other_test_user, Synapsis.Permissions.NO_PERMISSION)
     assert is_manager_on_team(team, other_test_user) is False
+
+
+async def test_get_team_members(synapse_test_helper, other_test_user, invite_to_team_and_accept, is_on_team):
+    team = synapse_test_helper.create_team()
+    invite_to_team_and_accept(team)
+
+    def assert_TeamMembers(objs):
+        for obj in objs:
+            for prop in ['teamId', 'member', 'isAdmin']:
+                assert prop in obj
+
+    def assert_UserGroupHeaders(objs):
+        for obj in objs:
+            for prop in ['ownerId', 'isIndividual']:
+                assert prop in obj
+
+    fake_team_members = [
+        {
+            'teamId': '100',
+            'member': {
+                'ownerId': '1001',
+                'isIndividual': True
+            },
+            'isAdmin': False
+        },
+        {
+            'teamId': '200',
+            'member': {
+                'ownerId': '2001',
+                'isIndividual': True
+            },
+            'isAdmin': False
+        },
+        {
+            'teamId': '300',
+            'member': {
+                'ownerId': '3001',
+                'isIndividual': True
+            },
+            'isAdmin': False
+        }
+    ]
+
+    # Get all TeamMembers
+    team_members = Synapsis.Utils.get_team_members(team)
+    assert len(team_members) == 2
+    assert_TeamMembers(team_members)
+
+    # Get all TeamMembers from a list of members
+    team_members = Synapsis.Utils.get_team_members(team, team_members=fake_team_members)
+    assert len(team_members) == len(fake_team_members)
+    assert_TeamMembers(team_members)
+
+    # Get all TeamMembers for a user
+    team_members = Synapsis.Utils.get_team_members(team, users=other_test_user)
+    assert len(team_members) == 1
+    assert_TeamMembers(team_members)
+    assert team_members[0].get('member').get('ownerId') == other_test_user.ownerId
+
+    team_members = Synapsis.Utils.get_team_members(team, users='0')
+    assert len(team_members) == 0
+
+    # Get all UserGroupHeaders
+    team_members = Synapsis.Utils.get_team_members(team, as_user_group_header=True)
+    assert len(team_members) == 2
+    assert_UserGroupHeaders(team_members)
+
+    # Get all UserGroupHeaders from a list of members
+    team_members = Synapsis.Utils.get_team_members(team, as_user_group_header=True, team_members=fake_team_members)
+    assert len(team_members) == len(fake_team_members)
+    assert_UserGroupHeaders(team_members)
+
+    # Get all UserGroupHeaders for a user
+    team_members = Synapsis.Utils.get_team_members(team, users=other_test_user, as_user_group_header=True)
+    assert len(team_members) == 1
+    assert_UserGroupHeaders(team_members)
+    assert team_members[0].get('ownerId') == other_test_user.ownerId
+
+    team_members = Synapsis.Utils.get_team_members(team, users='0', as_user_group_header=True)
+    assert len(team_members) == 0
+
+
+async def test_remove_from_team(synapse_test_helper, other_test_user, invite_to_team_and_accept, is_on_team):
+    team = synapse_test_helper.create_team()
+    invite_to_team_and_accept(team)
+    Synapsis.Utils.remove_from_team(team, other_test_user)
+    assert is_on_team(team, other_test_user) is False
 
 
 async def test_find_data_file_handle(synapse_test_helper, syn_file):

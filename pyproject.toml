@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "synapsis"
-version = "0.0.8"
+version = "0.0.9"
 description = "Synapse integration utilities with asyncio support."
 keywords = ["Synapse", "asyncio"]
 license = { file = "LICENSE" }

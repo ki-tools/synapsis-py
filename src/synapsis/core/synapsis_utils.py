@@ -378,6 +378,72 @@ class SynapsisUtils(object):
         else:
             return invite
 
+    def remove_from_team(self,
+                         team: synapseclient.Team | str | numbers.Number,
+                         user: synapseclient.UserProfile | str | numbers.Number
+                         ) -> None:
+        """
+        Removes a user from a Team.
+
+        :param team: The Team or ID to remove the user from.
+        :param user: The UserProfile or ID to remove from the Team.
+        :return: None
+        """
+        team_id = self.id_of(team)
+        user_id = self.id_of(user)
+        self.__synapse__.restDELETE(uri='/team/{0}/member/{1}'.format(team_id, user_id))
+
+    def get_team_members(self,
+                         team: synapseclient.Team | str | numbers.Number,
+                         users: list[synapseclient.UserProfile | str | numbers.Number] |
+                                synapseclient.UserProfile | str | numbers.Number = None,
+                         as_user_group_header: bool = False,
+                         team_members: list[dict] | None = None,
+                         ):
+        """
+        Gets the list of members on a team.
+
+        :param team: Team or ID to get members from.
+        :param users: Optional. Only return results for these users.
+        :param as_user_group_header: True to return the "member" (UserGroupHeader) instead of the TeamMember.
+        :param team_members: Optional. List of dictionaries from syn.getTeamMembers().
+        :return: List of TeamMember objects or UserGroupHeader objects.
+        """
+        team_id = str(self.id_of(team))
+        team_members = team_members or list(self.__synapse__.getTeamMembers(team))
+        if users:
+            users = users if isinstance(users, list) else [users]
+            user_ids = Utils.map(users, lambda user: str(self.id_of(user)))
+            team_members = Utils.select(
+                team_members,
+                lambda member: str(member.get('teamId')) == team_id and member.get('member').get('ownerId') in user_ids
+            )
+
+        if as_user_group_header:
+            return Utils.map(team_members, key='member')
+        else:
+            return team_members
+
+    def get_team_member(self,
+                        team: synapseclient.Team | str | numbers.Number,
+                        user: synapseclient.UserProfile | str | numbers.Number,
+                        as_user_group_header: bool = False,
+                        team_members: list[dict] | None = None,
+                        ) -> dict | None:
+        """
+        Gets a member of a team.
+
+        :param team: Team or ID to get members from.
+        :param user: The UserProfile or ID to get.
+        :param as_user_group_header: True to return the "member" (UserGroupHeader) instead of the TeamMember.
+        :param team_members: Optional. List of dictionaries from syn.getTeamMembers().
+        :return: List of TeamMember objects or UserGroupHeader objects.
+        """
+        return Utils.first(self.get_team_members(team,
+                                                 users=user,
+                                                 team_members=team_members,
+                                                 as_user_group_header=as_user_group_header))
+
     def get_team_permission(self,
                             team: synapseclient.Team | str | numbers.Number,
                             user: synapseclient.UserProfile | str | numbers.Number,

@@ -1,5 +1,12 @@
 # Change Log
 
+## Version 0.0.9 (2024-01-29)
+
+### Changes
+
+- Added `Synapsis.Utils.get_team_members()` and `Synapsis.Utils.get_team_member()`.
+- Added `Synapsis.Utils.remove_from_team()`.
+
 ## Version 0.0.8 (2024-01-09)
 
 ### Changes

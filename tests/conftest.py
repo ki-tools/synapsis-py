@@ -166,6 +166,34 @@ def syn_file(synapse_test_helper, syn_folder):
     yield synapse_test_helper.create_file(parent=syn_folder)
 
 
+@pytest.fixture
+def invite_to_team_and_accept(other_test_user, other_test_credentials, accept_team_invite, is_invited_to_team,
+                              is_on_team):
+    def _m(team):
+        Synapsis.Utils.invite_to_team(team, other_test_user)
+        assert is_invited_to_team(team, other_test_user)
+        assert is_on_team(team, other_test_user) is False
+
+        auth_token = other_test_credentials[2]
+        accept_team_invite(team, other_test_user, authToken=auth_token)
+        assert is_invited_to_team(team, other_test_user) is False
+        assert is_on_team(team, other_test_user)
+
+    yield _m
+
+
+@pytest.fixture()
+def is_on_team(synapse_test_helper):
+    def _m(team, user):
+        user_id = id_of(user)
+        team_user_ids = list(
+            map(lambda item: id_of(item.get('member')), synapse_test_helper.client().getTeamMembers(team))
+        )
+        return user_id in team_user_ids
+
+    yield _m
+
+
 @pytest.fixture()
 def is_invited_to_team(synapse_test_helper):
     def _m(team, invitee):

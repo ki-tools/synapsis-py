@@ -406,6 +406,72 @@ class SynapsisUtils(object):
         else:
             return invite
 
+    def remove_from_team(self,
+                         team: synapseclient.Team | str | numbers.Number,
+                         user: synapseclient.UserProfile | str | numbers.Number
+                         ) -&gt; None:
+        &#34;&#34;&#34;
+        Removes a user from a Team.
+
+        :param team: The Team or ID to remove the user from.
+        :param user: The UserProfile or ID to remove from the Team.
+        :return: None
+        &#34;&#34;&#34;
+        team_id = self.id_of(team)
+        user_id = self.id_of(user)
+        self.__synapse__.restDELETE(uri=&#39;/team/{0}/member/{1}&#39;.format(team_id, user_id))
+
+    def get_team_members(self,
+                         team: synapseclient.Team | str | numbers.Number,
+                         users: list[synapseclient.UserProfile | str | numbers.Number] |
+                                synapseclient.UserProfile | str | numbers.Number = None,
+                         as_user_group_header: bool = False,
+                         team_members: list[dict] | None = None,
+                         ):
+        &#34;&#34;&#34;
+        Gets the list of members on a team.
+
+        :param team: Team or ID to get members from.
+        :param users: Optional. Only return results for these users.
+        :param as_user_group_header: True to return the &#34;member&#34; (UserGroupHeader) instead of the TeamMember.
+        :param team_members: Optional. List of dictionaries from syn.getTeamMembers().
+        :return: List of TeamMember objects or UserGroupHeader objects.
+        &#34;&#34;&#34;
+        team_id = str(self.id_of(team))
+        team_members = team_members or list(self.__synapse__.getTeamMembers(team))
+        if users:
+            users = users if isinstance(users, list) else [users]
+            user_ids = Utils.map(users, lambda user: str(self.id_of(user)))
+            team_members = Utils.select(
+                team_members,
+                lambda member: str(member.get(&#39;teamId&#39;)) == team_id and member.get(&#39;member&#39;).get(&#39;ownerId&#39;) in user_ids
+            )
+
+        if as_user_group_header:
+            return Utils.map(team_members, key=&#39;member&#39;)
+        else:
+            return team_members
+
+    def get_team_member(self,
+                        team: synapseclient.Team | str | numbers.Number,
+                        user: synapseclient.UserProfile | str | numbers.Number,
+                        as_user_group_header: bool = False,
+                        team_members: list[dict] | None = None,
+                        ) -&gt; dict | None:
+        &#34;&#34;&#34;
+        Gets a member of a team.
+
+        :param team: Team or ID to get members from.
+        :param user: The UserProfile or ID to get.
+        :param as_user_group_header: True to return the &#34;member&#34; (UserGroupHeader) instead of the TeamMember.
+        :param team_members: Optional. List of dictionaries from syn.getTeamMembers().
+        :return: List of TeamMember objects or UserGroupHeader objects.
+        &#34;&#34;&#34;
+        return Utils.first(self.get_team_members(team,
+                                                 users=user,
+                                                 team_members=team_members,
+                                                 as_user_group_header=as_user_group_header))
+
     def get_team_permission(self,
                             team: synapseclient.Team | str | numbers.Number,
                             user: synapseclient.UserProfile | str | numbers.Number,
@@ -910,6 +976,72 @@ class SynapsisUtils(object):
             return [invite, manager_res]
         else:
             return invite
+
+    def remove_from_team(self,
+                         team: synapseclient.Team | str | numbers.Number,
+                         user: synapseclient.UserProfile | str | numbers.Number
+                         ) -&gt; None:
+        &#34;&#34;&#34;
+        Removes a user from a Team.
+
+        :param team: The Team or ID to remove the user from.
+        :param user: The UserProfile or ID to remove from the Team.
+        :return: None
+        &#34;&#34;&#34;
+        team_id = self.id_of(team)
+        user_id = self.id_of(user)
+        self.__synapse__.restDELETE(uri=&#39;/team/{0}/member/{1}&#39;.format(team_id, user_id))
+
+    def get_team_members(self,
+                         team: synapseclient.Team | str | numbers.Number,
+                         users: list[synapseclient.UserProfile | str | numbers.Number] |
+                                synapseclient.UserProfile | str | numbers.Number = None,
+                         as_user_group_header: bool = False,
+                         team_members: list[dict] | None = None,
+                         ):
+        &#34;&#34;&#34;
+        Gets the list of members on a team.
+
+        :param team: Team or ID to get members from.
+        :param users: Optional. Only return results for these users.
+        :param as_user_group_header: True to return the &#34;member&#34; (UserGroupHeader) instead of the TeamMember.
+        :param team_members: Optional. List of dictionaries from syn.getTeamMembers().
+        :return: List of TeamMember objects or UserGroupHeader objects.
+        &#34;&#34;&#34;
+        team_id = str(self.id_of(team))
+        team_members = team_members or list(self.__synapse__.getTeamMembers(team))
+        if users:
+            users = users if isinstance(users, list) else [users]
+            user_ids = Utils.map(users, lambda user: str(self.id_of(user)))
+            team_members = Utils.select(
+                team_members,
+                lambda member: str(member.get(&#39;teamId&#39;)) == team_id and member.get(&#39;member&#39;).get(&#39;ownerId&#39;) in user_ids
+            )
+
+        if as_user_group_header:
+            return Utils.map(team_members, key=&#39;member&#39;)
+        else:
+            return team_members
+
+    def get_team_member(self,
+                        team: synapseclient.Team | str | numbers.Number,
+                        user: synapseclient.UserProfile | str | numbers.Number,
+                        as_user_group_header: bool = False,
+                        team_members: list[dict] | None = None,
+                        ) -&gt; dict | None:
+        &#34;&#34;&#34;
+        Gets a member of a team.
+
+        :param team: Team or ID to get members from.
+        :param user: The UserProfile or ID to get.
+        :param as_user_group_header: True to return the &#34;member&#34; (UserGroupHeader) instead of the TeamMember.
+        :param team_members: Optional. List of dictionaries from syn.getTeamMembers().
+        :return: List of TeamMember objects or UserGroupHeader objects.
+        &#34;&#34;&#34;
+        return Utils.first(self.get_team_members(team,
+                                                 users=user,
+                                                 team_members=team_members,
+                                                 as_user_group_header=as_user_group_header))
 
     def get_team_permission(self,
                             team: synapseclient.Team | str | numbers.Number,
@@ -1431,6 +1563,87 @@ class SynapsisUtils(object):
     return &#39;/&#39;.join(segments)</code></pre>
 </details>
 </dd>
+<dt id="synapsis.core.synapsis_utils.SynapsisUtils.get_team_member"><code class="name flex">
+<span>def <span class="ident">get_team_member</span></span>(<span>self, team: synapseclient.Team | str | numbers.Number, user: synapseclient.UserProfile | str | numbers.Number, as_user_group_header: bool = False, team_members: list[dict] | None = None) ‑> Optional[dict]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets a member of a team.</p>
+<p>:param team: Team or ID to get members from.
+:param user: The UserProfile or ID to get.
+:param as_user_group_header: True to return the "member" (UserGroupHeader) instead of the TeamMember.
+:param team_members: Optional. List of dictionaries from syn.getTeamMembers().
+:return: List of TeamMember objects or UserGroupHeader objects.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_team_member(self,
+                    team: synapseclient.Team | str | numbers.Number,
+                    user: synapseclient.UserProfile | str | numbers.Number,
+                    as_user_group_header: bool = False,
+                    team_members: list[dict] | None = None,
+                    ) -&gt; dict | None:
+    &#34;&#34;&#34;
+    Gets a member of a team.
+
+    :param team: Team or ID to get members from.
+    :param user: The UserProfile or ID to get.
+    :param as_user_group_header: True to return the &#34;member&#34; (UserGroupHeader) instead of the TeamMember.
+    :param team_members: Optional. List of dictionaries from syn.getTeamMembers().
+    :return: List of TeamMember objects or UserGroupHeader objects.
+    &#34;&#34;&#34;
+    return Utils.first(self.get_team_members(team,
+                                             users=user,
+                                             team_members=team_members,
+                                             as_user_group_header=as_user_group_header))</code></pre>
+</details>
+</dd>
+<dt id="synapsis.core.synapsis_utils.SynapsisUtils.get_team_members"><code class="name flex">
+<span>def <span class="ident">get_team_members</span></span>(<span>self, team: synapseclient.Team | str | numbers.Number, users: list[synapseclient.UserProfile | str | numbers.Number] | synapseclient.UserProfile | str | numbers.Number = None, as_user_group_header: bool = False, team_members: list[dict] | None = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the list of members on a team.</p>
+<p>:param team: Team or ID to get members from.
+:param users: Optional. Only return results for these users.
+:param as_user_group_header: True to return the "member" (UserGroupHeader) instead of the TeamMember.
+:param team_members: Optional. List of dictionaries from syn.getTeamMembers().
+:return: List of TeamMember objects or UserGroupHeader objects.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_team_members(self,
+                     team: synapseclient.Team | str | numbers.Number,
+                     users: list[synapseclient.UserProfile | str | numbers.Number] |
+                            synapseclient.UserProfile | str | numbers.Number = None,
+                     as_user_group_header: bool = False,
+                     team_members: list[dict] | None = None,
+                     ):
+    &#34;&#34;&#34;
+    Gets the list of members on a team.
+
+    :param team: Team or ID to get members from.
+    :param users: Optional. Only return results for these users.
+    :param as_user_group_header: True to return the &#34;member&#34; (UserGroupHeader) instead of the TeamMember.
+    :param team_members: Optional. List of dictionaries from syn.getTeamMembers().
+    :return: List of TeamMember objects or UserGroupHeader objects.
+    &#34;&#34;&#34;
+    team_id = str(self.id_of(team))
+    team_members = team_members or list(self.__synapse__.getTeamMembers(team))
+    if users:
+        users = users if isinstance(users, list) else [users]
+        user_ids = Utils.map(users, lambda user: str(self.id_of(user)))
+        team_members = Utils.select(
+            team_members,
+            lambda member: str(member.get(&#39;teamId&#39;)) == team_id and member.get(&#39;member&#39;).get(&#39;ownerId&#39;) in user_ids
+        )
+
+    if as_user_group_header:
+        return Utils.map(team_members, key=&#39;member&#39;)
+    else:
+        return team_members</code></pre>
+</details>
+</dd>
 <dt id="synapsis.core.synapsis_utils.SynapsisUtils.get_team_permission"><code class="name flex">
 <span>def <span class="ident">get_team_permission</span></span>(<span>self, team: synapseclient.Team | str | numbers.Number, user: synapseclient.UserProfile | str | numbers.Number, **kwargs: t.Optional[dict]) ‑> <a title="synapsis.synapse.synapse_permission.SynapsePermission" href="../synapse/synapse_permission.html#synapsis.synapse.synapse_permission.SynapsePermission">SynapsePermission</a></span>
 </code></dt>
@@ -1626,6 +1839,34 @@ class SynapsisUtils(object):
         return md5.hexdigest()</code></pre>
 </details>
 </dd>
+<dt id="synapsis.core.synapsis_utils.SynapsisUtils.remove_from_team"><code class="name flex">
+<span>def <span class="ident">remove_from_team</span></span>(<span>self, team: synapseclient.Team | str | numbers.Number, user: synapseclient.UserProfile | str | numbers.Number) ‑> None</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Removes a user from a Team.</p>
+<p>:param team: The Team or ID to remove the user from.
+:param user: The UserProfile or ID to remove from the Team.
+:return: None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def remove_from_team(self,
+                     team: synapseclient.Team | str | numbers.Number,
+                     user: synapseclient.UserProfile | str | numbers.Number
+                     ) -&gt; None:
+    &#34;&#34;&#34;
+    Removes a user from a Team.
+
+    :param team: The Team or ID to remove the user from.
+    :param user: The UserProfile or ID to remove from the Team.
+    :return: None
+    &#34;&#34;&#34;
+    team_id = self.id_of(team)
+    user_id = self.id_of(user)
+    self.__synapse__.restDELETE(uri=&#39;/team/{0}/member/{1}&#39;.format(team_id, user_id))</code></pre>
+</details>
+</dd>
 <dt id="synapsis.core.synapsis_utils.SynapsisUtils.sanitize_entity_name"><code class="name flex">
 <span>def <span class="ident">sanitize_entity_name</span></span>(<span>self, name: str, replace_char: t.Optional[str] = '_', return_replaced: t.Optional[bool] = False) ‑> str | list[str, list]</span>
 </code></dt>
@@ -1801,11 +2042,14 @@ class SynapsisUtils(object):
 <li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.get_filehandles" href="#synapsis.core.synapsis_utils.SynapsisUtils.get_filehandles">get_filehandles</a></code></li>
 <li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.get_project" href="#synapsis.core.synapsis_utils.SynapsisUtils.get_project">get_project</a></code></li>
 <li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.get_synapse_path" href="#synapsis.core.synapsis_utils.SynapsisUtils.get_synapse_path">get_synapse_path</a></code></li>
+<li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.get_team_member" href="#synapsis.core.synapsis_utils.SynapsisUtils.get_team_member">get_team_member</a></code></li>
+<li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.get_team_members" href="#synapsis.core.synapsis_utils.SynapsisUtils.get_team_members">get_team_members</a></code></li>
 <li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.get_team_permission" href="#synapsis.core.synapsis_utils.SynapsisUtils.get_team_permission">get_team_permission</a></code></li>
 <li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.id_of" href="#synapsis.core.synapsis_utils.SynapsisUtils.id_of">id_of</a></code></li>
 <li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.invite_to_team" href="#synapsis.core.synapsis_utils.SynapsisUtils.invite_to_team">invite_to_team</a></code></li>
 <li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.is_synapse_id" href="#synapsis.core.synapsis_utils.SynapsisUtils.is_synapse_id">is_synapse_id</a></code></li>
 <li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.md5sum" href="#synapsis.core.synapsis_utils.SynapsisUtils.md5sum">md5sum</a></code></li>
+<li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.remove_from_team" href="#synapsis.core.synapsis_utils.SynapsisUtils.remove_from_team">remove_from_team</a></code></li>
 <li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.sanitize_entity_name" href="#synapsis.core.synapsis_utils.SynapsisUtils.sanitize_entity_name">sanitize_entity_name</a></code></li>
 <li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.set_entity_permission" href="#synapsis.core.synapsis_utils.SynapsisUtils.set_entity_permission">set_entity_permission</a></code></li>
 <li><code><a title="synapsis.core.synapsis_utils.SynapsisUtils.set_team_permission" href="#synapsis.core.synapsis_utils.SynapsisUtils.set_team_permission">set_team_permission</a></code></li>
